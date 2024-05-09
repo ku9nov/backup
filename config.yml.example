@@ -43,5 +43,6 @@ postgresql:
 additional:
   enabled: true
   files:
-    - string1
-    - string2 
+    - /path/to/first/file
+    - /path/to/second/file 
+    # etc...

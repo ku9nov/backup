@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	backup "github.com/ku9nov/backup/backups"
 	"github.com/ku9nov/backup/configs"
@@ -71,6 +72,7 @@ func ValidateConfigPath(path string) error {
 }
 
 func (configs mainConfig) Run() {
+	currentDate := time.Now().Format("20060102")
 	logrus.Infof("Default bucket: %s", configs.Default.Bucket)
 	logrus.Infof("Retention enabled: %t, retention period: %s", configs.Default.Retention.Enabled, configs.Default.Retention.RetentionPeriod)
 	awsCfg := utils.AWSAuth(*configs.Config)
@@ -89,7 +91,7 @@ func (configs mainConfig) Run() {
 	}
 	// // Additional configurations
 	if configs.Additional.Enabled {
-		backup.CreateAdditionalFilesBackup(configs.Additional.Files)
+		backup.CreateAdditionalFilesBackup(configs.Additional.Files, currentDate)
 	}
 }
 
