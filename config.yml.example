@@ -1,0 +1,47 @@
+default:
+  bucket: example-bucket-name
+  useProfile: 
+    enabled: false
+    profile: example-profile
+  accessKey: example-access-key
+  secretKey: example-secret-key
+  region: us-east-1
+  retention:
+    enabled: true
+    retentionPeriod: 1d
+# MongoDB config
+mongo:
+  enabled: false
+  host: 127.0.0.1
+  port: 27017
+  auth:
+    enabled: false
+    username: example-username
+    password: example-password
+
+# MySQL config
+mysql:
+  enabled: true
+  host: 127.0.0.1
+  port: 3306
+  auth:
+    enabled: true
+    username: example-username
+    password: example-password
+
+# PostgreSQL config
+postgresql:
+  enabled: true
+  host: 127.0.0.1
+  port: 5432
+  auth:
+    enabled: true
+    username: example-username
+    password: example-password
+
+# Backup files
+additional:
+  enabled: true
+  files:
+    - string1
+    - string2 
