@@ -6,16 +6,24 @@ default:
   accessKey: example-access-key
   secretKey: example-secret-key
   region: us-east-1
+  backupDir: /tmp
   retention:
     enabled: true
-    retentionPeriod: 1d
+    retentionPeriodDaily: 7 # days
+    retentionPeriodWeekly: 4 # weeks
+    retentionPeriodMonthly: 6 # months 
 # MongoDB config
 mongo:
   enabled: false
   host: 127.0.0.1
   port: 27017
+  dumpTool: mongodump
+  databases:
+    - first
+    - second 
   auth:
     enabled: false
+    authDatabase: admin
     username: example-username
     password: example-password
 
@@ -24,6 +32,10 @@ mysql:
   enabled: true
   host: 127.0.0.1
   port: 3306
+  dumpTool: mongodump
+  databases:
+    - first
+    - second 
   auth:
     enabled: true
     username: example-username
@@ -34,6 +46,10 @@ postgresql:
   enabled: true
   host: 127.0.0.1
   port: 5432
+  dumpTool: mongodump
+  databases:
+    - first
+    - second 
   auth:
     enabled: true
     username: example-username

@@ -74,12 +74,12 @@ func ValidateConfigPath(path string) error {
 func (configs mainConfig) Run() {
 	currentDate := time.Now().Format("20060102")
 	logrus.Infof("Default bucket: %s", configs.Default.Bucket)
-	logrus.Infof("Retention enabled: %t, retention period: %s", configs.Default.Retention.Enabled, configs.Default.Retention.RetentionPeriod)
+	logrus.Infof("Retention enabled: %t.", configs.Default.Retention.Enabled)
 	awsCfg := utils.AWSAuth(*configs.Config)
-	utils.ConnectToS3(awsCfg, *configs.Config)
+	utils.CheckOldFilesInS3(awsCfg, *configs.Config)
 	// MongoDB configuration
 	if configs.Mongo.Enabled {
-		backup.CreateMongoBackup(configs.Mongo.Host, configs.Mongo.Port, configs.Mongo.Auth.Enabled, configs.Mongo.Auth.Username, configs.Mongo.Auth.Password)
+		backup.CreateMongoBackup(configs.Mongo.Host, configs.Mongo.Port, configs.Mongo.Auth.Username, configs.Mongo.Auth.Password, configs.Mongo.Auth.AuthDatabase, configs.Mongo.DumpTool, configs.Default.BackupDir, currentDate, configs.Mongo.Databases, configs.Mongo.Auth.Enabled)
 	}
 	// // MySQL configuration
 	if configs.MySQL.Enabled {
@@ -91,7 +91,7 @@ func (configs mainConfig) Run() {
 	}
 	// // Additional configurations
 	if configs.Additional.Enabled {
-		backup.CreateAdditionalFilesBackup(configs.Additional.Files, currentDate)
+		backup.CreateAdditionalFilesBackup(configs.Additional.Files, currentDate, configs.Default.BackupDir)
 	}
 }
 
