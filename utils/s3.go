@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -38,7 +40,7 @@ func AWSAuth(cfgValues configs.Config) (awsCfg aws.Config) {
 	return awsCfg
 }
 
-func ConnectToS3(awsCfg aws.Config, cfgValues configs.Config) {
+func CheckOldFilesInS3(awsCfg aws.Config, cfgValues configs.Config) {
 	client := s3.NewFromConfig(awsCfg)
 
 	output, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
@@ -47,9 +49,51 @@ func ConnectToS3(awsCfg aws.Config, cfgValues configs.Config) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-
-	logrus.Debug("s3 results:")
+	currentTime := time.Now()
+	logrus.Debug("Retention candidates:")
 	for _, object := range output.Contents {
-		logrus.Debugf("key=%s size=%d", aws.ToString(object.Key), object.Size)
+		// Calculate the age of the object
+		age := currentTime.Sub(*object.LastModified)
+
+		// Check if the object is in the daily folder and older than 1 day
+		if strings.HasPrefix(aws.ToString(object.Key), "daily/") && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodDaily)*24*time.Hour {
+			logrus.Debugf("Key: %s, Size: %d, Last Modified: %v, Age: %v", aws.ToString(object.Key), object.Size, object.LastModified, age)
+			// if err := deleteObject(client, cfgValues.Default.Bucket, aws.ToString(object.Key)); err != nil {
+			//     logrus.Errorf("Delete failed: %v", err)
+			// } else {
+			//     logrus.Infof("Deleted object: %s", aws.ToString(object.Key))
+			// }
+		}
+
+		// Check if the object is in the weekly folder and older than 1 month
+		if strings.HasPrefix(aws.ToString(object.Key), "weekly/") && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodWeekly)*24*time.Hour*7 {
+			logrus.Debugf("Key: %s, Size: %d, Last Modified: %v, Age: %v", aws.ToString(object.Key), object.Size, object.LastModified, age)
+			// if err := deleteObject(client, cfgValues.Default.Bucket, aws.ToString(object.Key)); err != nil {
+			//     logrus.Errorf("Delete failed: %v", err)
+			// } else {
+			//     logrus.Infof("Deleted object: %s", aws.ToString(object.Key))
+			// }
+		}
+
+		// Check if the object is in the monthly folder and older than 6 months
+		if strings.HasPrefix(aws.ToString(object.Key), "monthly/") && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodMonthly)*24*time.Hour*30 {
+			logrus.Debugf("Key: %s, Size: %d, Last Modified: %v, Age: %v", aws.ToString(object.Key), object.Size, object.LastModified, age)
+			// if err := deleteObject(client, cfgValues.Default.Bucket, aws.ToString(object.Key)); err != nil {
+			//     logrus.Errorf("Delete failed: %v", err)
+			// } else {
+			//     logrus.Infof("Deleted object: %s", aws.ToString(object.Key))
+			// }
+		}
 	}
 }
+
+// func deleteObject(client *s3.Client, bucket string, key string) error {
+// 	_, err := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+// 		Bucket: aws.String(bucket),
+// 		Key:    aws.String(key),
+// 	})
+// 	if err != nil {
+// 		return logrus.Errorf("failed to delete object %s: %w", key, err)
+// 	}
+// 	return nil
+// }
