@@ -83,11 +83,11 @@ func (configs mainConfig) Run() {
 	}
 	// // MySQL configuration
 	if configs.MySQL.Enabled {
-		backup.CreateMySQLBackup(configs.MySQL.Host, configs.MySQL.Port, configs.MySQL.Auth.Enabled, configs.MySQL.Auth.Username, configs.MySQL.Auth.Password)
+		backup.CreateMySQLBackup(configs.MySQL.Host, configs.MySQL.Port, configs.MySQL.Auth.Username, configs.MySQL.Auth.Password, configs.MySQL.DumpTool, configs.Default.BackupDir, currentDate, configs.MySQL.Databases, configs.MySQL.Auth.Enabled)
 	}
 	// // PostgreSQL configuration
 	if configs.PostgreSQL.Enabled {
-		backup.CreatePostgreSQLBackup(configs.PostgreSQL.Host, configs.PostgreSQL.Port, configs.PostgreSQL.Auth.Enabled, configs.PostgreSQL.Auth.Username, configs.PostgreSQL.Auth.Password)
+		backup.CreatePostgreSQLBackup(configs.PostgreSQL.Host, configs.PostgreSQL.Port, configs.PostgreSQL.Auth.Username, configs.PostgreSQL.Auth.Password, configs.PostgreSQL.DumpTool, configs.Default.BackupDir, currentDate, configs.PostgreSQL.Databases, configs.PostgreSQL.Auth.Enabled)
 	}
 	// // Additional configurations
 	if configs.Additional.Enabled {

@@ -34,7 +34,7 @@ type Config struct {
 	MySQL struct {
 		Enabled   bool     `yaml:"enabled"`
 		Host      string   `yaml:"host"`
-		Port      int      `yaml:"port"`
+		Port      string   `yaml:"port"`
 		DumpTool  string   `yaml:"dumpTool"`
 		Databases []string `yaml:"databases"`
 		Auth      struct {
@@ -46,7 +46,7 @@ type Config struct {
 	PostgreSQL struct {
 		Enabled   bool     `yaml:"enabled"`
 		Host      string   `yaml:"host"`
-		Port      int      `yaml:"port"`
+		Port      string   `yaml:"port"`
 		DumpTool  string   `yaml:"dumpTool"`
 		Databases []string `yaml:"databases"`
 		Auth      struct {

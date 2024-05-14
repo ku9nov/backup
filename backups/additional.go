@@ -10,5 +10,6 @@ func CreateAdditionalFilesBackup(files []string, currentDate, backupDir string) 
 	for _, file := range files {
 		logrus.Info(file)
 	}
-	utils.TarFiles("etc", currentDate, backupDir, files)
+	tarFilename := utils.TarFiles("etc", currentDate, backupDir, files)
+	utils.CleanupFilesAndTar(tarFilename)
 }

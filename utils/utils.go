@@ -18,13 +18,13 @@ func CheckToolIsExist(tool string) {
 		return
 	}
 }
-func TarFiles(backupSource, currentDate, backupDir string, files []string) {
+func TarFiles(backupSource, currentDate, backupDir string, files []string) []string {
 	tarGzFilename := filepath.Join(backupDir, backupSource+"-"+currentDate+".tgz")
 
 	tarGzFile, err := os.Create(tarGzFilename)
 	if err != nil {
 		logrus.Error("Error creating tar.gz file:", err)
-		return
+		return nil
 	}
 	defer tarGzFile.Close()
 
@@ -41,6 +41,7 @@ func TarFiles(backupSource, currentDate, backupDir string, files []string) {
 	}
 
 	logrus.Info("Files/folders archived to:", tarGzFilename)
+	return []string{tarGzFilename}
 }
 
 func AddToTar(tarWriter *tar.Writer, path string) error {
@@ -91,4 +92,15 @@ func addFileToTar(tarWriter *tar.Writer, path string, relPath string, info os.Fi
 	}
 
 	return nil
+}
+
+func CleanupFilesAndTar(files []string) {
+	for _, file := range files {
+		err := os.Remove(file)
+		if err != nil {
+			logrus.Errorf("Error removing file %s: %v", file, err)
+		} else {
+			logrus.Infof("%s was removed successfully.", file)
+		}
+	}
 }

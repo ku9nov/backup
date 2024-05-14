@@ -11,6 +11,7 @@ import (
 
 func CreateMongoBackup(host, port, username, password, authDatabase, tool, backupDir, currentDate string, databases []string, auth bool) {
 	var files []string
+	success := false
 	logrus.Info("MongoDB is enabled, executing MongoDB backup code...")
 
 	for _, db := range databases {
@@ -29,11 +30,18 @@ func CreateMongoBackup(host, port, username, password, authDatabase, tool, backu
 			logrus.Debugf("%s %s", cmdArgs[0], strings.Join(cmdArgs[1:], " "))
 			logrus.Errorf("Error backing up database %s: %v\n", db, err)
 			logrus.Errorf("Stderr output for database %s: %s\n", db, output)
-			continue
+			success = false
+			break
 		}
 
 		logrus.Infof("Backup for database %s created successfully.\n", db)
 		files = append(files, fmt.Sprintf("%s/%s", backupDir, db))
+		success = true
 	}
-	utils.TarFiles("mongo", currentDate, backupDir, files)
+	if success {
+		tarFilename := utils.TarFiles("mongo", currentDate, backupDir, files)
+		files = append(files, tarFilename...)
+		utils.CleanupFilesAndTar(files)
+	}
+
 }

@@ -32,6 +32,7 @@ func AWSAuth(cfgValues configs.Config) (awsCfg aws.Config) {
 		logrus.Infof("The use profile is: %t. Keys will be used as credentials.", cfgValues.Default.UseProfile.Enabled)
 		awsCfg, err = config.LoadDefaultConfig(context.TODO(),
 			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfgValues.Default.AccessKey, cfgValues.Default.SecretKey, "")),
+			config.WithRegion(cfgValues.Default.Region),
 		)
 		if err != nil {
 			panic(fmt.Sprintf("Failed authentication using keys as credentials: %v", err))

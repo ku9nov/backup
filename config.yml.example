@@ -32,7 +32,7 @@ mysql:
   enabled: true
   host: 127.0.0.1
   port: 3306
-  dumpTool: mongodump
+  dumpTool: mysqldump
   databases:
     - first
     - second 
@@ -46,7 +46,7 @@ postgresql:
   enabled: true
   host: 127.0.0.1
   port: 5432
-  dumpTool: mongodump
+  dumpTool: pg_dump
   databases:
     - first
     - second 
