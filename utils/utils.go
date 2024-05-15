@@ -11,12 +11,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CheckToolIsExist(tool string) {
+func CheckToolIsExist(tool string) bool {
 	_, err := exec.LookPath(tool)
 	if err != nil {
 		logrus.Errorf("%s command not found. Please ensure %s is installed and properly configured.", tool, tool)
-		return
+		return false
 	}
+	return true
 }
 func TarFiles(backupSource, currentDate, backupDir string, files []string) []string {
 	tarGzFilename := filepath.Join(backupDir, backupSource+"-"+currentDate+".tgz")
@@ -37,6 +38,7 @@ func TarFiles(backupSource, currentDate, backupDir string, files []string) []str
 	for _, file := range files {
 		if err := AddToTar(tarWriter, file); err != nil {
 			logrus.Error("Error adding file/folder to tar.gz:", err)
+			return nil
 		}
 	}
 
@@ -96,7 +98,7 @@ func addFileToTar(tarWriter *tar.Writer, path string, relPath string, info os.Fi
 
 func CleanupFilesAndTar(files []string) {
 	for _, file := range files {
-		err := os.Remove(file)
+		err := os.RemoveAll(file)
 		if err != nil {
 			logrus.Errorf("Error removing file %s: %v", file, err)
 		} else {

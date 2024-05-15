@@ -75,23 +75,34 @@ func (configs mainConfig) Run() {
 	currentDate := time.Now().Format("20060102")
 	logrus.Infof("Default bucket: %s", configs.Default.Bucket)
 	logrus.Infof("Retention enabled: %t.", configs.Default.Retention.Enabled)
-	awsCfg := utils.AWSAuth(*configs.Config)
-	utils.CheckOldFilesInS3(awsCfg, *configs.Config)
+	s3Cfg := utils.CreateStorageClient(*configs.Config)
+	allBackupsSuccessful := true
 	// MongoDB configuration
 	if configs.Mongo.Enabled {
-		backup.CreateMongoBackup(configs.Mongo.Host, configs.Mongo.Port, configs.Mongo.Auth.Username, configs.Mongo.Auth.Password, configs.Mongo.Auth.AuthDatabase, configs.Mongo.DumpTool, configs.Default.BackupDir, currentDate, configs.Mongo.Databases, configs.Mongo.Auth.Enabled)
+		if !backup.CreateMongoBackup(*configs.Config, currentDate, s3Cfg) {
+			allBackupsSuccessful = false
+		}
 	}
-	// // MySQL configuration
+	// MySQL configuration
 	if configs.MySQL.Enabled {
-		backup.CreateMySQLBackup(configs.MySQL.Host, configs.MySQL.Port, configs.MySQL.Auth.Username, configs.MySQL.Auth.Password, configs.MySQL.DumpTool, configs.Default.BackupDir, currentDate, configs.MySQL.Databases, configs.MySQL.Auth.Enabled)
+		if !backup.CreateMySQLBackup(*configs.Config, currentDate, s3Cfg) {
+			allBackupsSuccessful = false
+		}
 	}
-	// // PostgreSQL configuration
+	// PostgreSQL configuration
 	if configs.PostgreSQL.Enabled {
-		backup.CreatePostgreSQLBackup(configs.PostgreSQL.Host, configs.PostgreSQL.Port, configs.PostgreSQL.Auth.Username, configs.PostgreSQL.Auth.Password, configs.PostgreSQL.DumpTool, configs.Default.BackupDir, currentDate, configs.PostgreSQL.Databases, configs.PostgreSQL.Auth.Enabled)
+		if !backup.CreatePostgreSQLBackup(*configs.Config, currentDate, s3Cfg) {
+			allBackupsSuccessful = false
+		}
 	}
-	// // Additional configurations
+	// Additional configurations
 	if configs.Additional.Enabled {
-		backup.CreateAdditionalFilesBackup(configs.Additional.Files, currentDate, configs.Default.BackupDir)
+		if !backup.CreateAdditionalFilesBackup(*configs.Config, currentDate, s3Cfg) {
+			allBackupsSuccessful = false
+		}
+	}
+	if allBackupsSuccessful && configs.Default.Retention.Enabled {
+		utils.CheckOldFilesInS3(*configs.Config, s3Cfg)
 	}
 }
 

@@ -5,25 +5,26 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/ku9nov/backup/configs"
 	"github.com/ku9nov/backup/utils"
 	"github.com/sirupsen/logrus"
 )
 
-func CreateMongoBackup(host, port, username, password, authDatabase, tool, backupDir, currentDate string, databases []string, auth bool) {
+func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg interface{}) bool {
 	var files []string
 	success := false
 	logrus.Info("MongoDB is enabled, executing MongoDB backup code...")
-
-	for _, db := range databases {
+	success = utils.CheckToolIsExist(cfgValues.Mongo.DumpTool)
+	for _, db := range cfgValues.Mongo.Databases {
 		var uri string
-		if auth {
+		if cfgValues.Mongo.Auth.Enabled {
 			logrus.Info("MongoDB backup with authentication is required.")
-			uri = fmt.Sprintf(`"mongodb://%s:%s@%s:%s/?authSource=%s"`, username, password, host, port, authDatabase)
+			uri = fmt.Sprintf(`"mongodb://%s:%s@%s:%s/?authSource=%s"`, cfgValues.Mongo.Auth.Username, cfgValues.Mongo.Auth.Password, cfgValues.Mongo.Host, cfgValues.Mongo.Port, cfgValues.Mongo.Auth.AuthDatabase)
 		} else {
-			uri = fmt.Sprintf(`"mongodb://%s:%s"`, host, port)
+			uri = fmt.Sprintf(`"mongodb://%s:%s"`, cfgValues.Mongo.Host, cfgValues.Mongo.Port)
 		}
 
-		cmdArgs := []string{tool, "--out", fmt.Sprintf("%s/%s", backupDir, db), "--uri", uri, "--db", db}
+		cmdArgs := []string{cfgValues.Mongo.DumpTool, "--out", fmt.Sprintf("%s/%s", cfgValues.Default.BackupDir, db), "--uri", uri, "--db", db}
 
 		output, err := exec.Command(cmdArgs[0], cmdArgs[1:]...).CombinedOutput()
 		if err != nil {
@@ -35,13 +36,19 @@ func CreateMongoBackup(host, port, username, password, authDatabase, tool, backu
 		}
 
 		logrus.Infof("Backup for database %s created successfully.\n", db)
-		files = append(files, fmt.Sprintf("%s/%s", backupDir, db))
+		files = append(files, fmt.Sprintf("%s/%s", cfgValues.Default.BackupDir, db))
 		success = true
 	}
 	if success {
-		tarFilename := utils.TarFiles("mongo", currentDate, backupDir, files)
-		files = append(files, tarFilename...)
-		utils.CleanupFilesAndTar(files)
+		tarFilename := utils.TarFiles("mongo", currentDate, cfgValues.Default.BackupDir, files)
+		if len(tarFilename) == 0 {
+			logrus.Error("Error creating tar file.")
+			success = false
+		} else {
+			utils.UploadToS3(cfgValues, tarFilename, s3Cfg)
+			files = append(files, tarFilename...)
+			utils.CleanupFilesAndTar(files)
+		}
 	}
-
+	return success
 }

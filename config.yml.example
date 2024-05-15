@@ -1,4 +1,5 @@
 default:
+  storageProvider: aws
   bucket: example-bucket-name
   useProfile: 
     enabled: false
@@ -12,6 +13,11 @@ default:
     retentionPeriodDaily: 7 # days
     retentionPeriodWeekly: 4 # weeks
     retentionPeriodMonthly: 6 # months 
+    
+minio:
+  secure: false
+  s3Endpoint: 172.25.0.2:9000
+
 # MongoDB config
 mongo:
   enabled: false

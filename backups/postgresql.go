@@ -7,26 +7,27 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/ku9nov/backup/configs"
 	"github.com/ku9nov/backup/utils"
 	"github.com/sirupsen/logrus"
 )
 
-func CreatePostgreSQLBackup(host, port, username, password, tool, backupDir, currentDate string, databases []string, auth bool) {
+func CreatePostgreSQLBackup(cfgValues configs.Config, currentDate string, s3Cfg interface{}) bool {
 	var files []string
 	success := false
-	utils.CheckToolIsExist(tool)
+	success = utils.CheckToolIsExist(cfgValues.PostgreSQL.DumpTool)
 
 	logrus.Info("PostgreSQL is enabled, executing PostgreSQL backup code...")
-	for _, db := range databases {
-		cmdArgs := []string{tool, "-h", host, "-p", port}
-		if auth {
+	for _, db := range cfgValues.PostgreSQL.Databases {
+		cmdArgs := []string{cfgValues.PostgreSQL.DumpTool, "-h", cfgValues.PostgreSQL.Host, "-p", cfgValues.PostgreSQL.Port}
+		if cfgValues.PostgreSQL.Auth.Enabled {
 			logrus.Info("PostgreSQL backup with authentication is required.")
-			cmdArgs = append(cmdArgs, "-U", username)
+			cmdArgs = append(cmdArgs, "-U", cfgValues.PostgreSQL.Auth.Username)
 		}
 
 		cmdArgs = append(cmdArgs, "-d", db)
 
-		filePath := fmt.Sprintf("%s/%s.sql", backupDir, db)
+		filePath := fmt.Sprintf("%s/%s.sql", cfgValues.Default.BackupDir, db)
 		file, err := os.Create(filePath)
 		if err != nil {
 			log.Printf("Error creating file for database %s: %v\n", db, err)
@@ -37,8 +38,8 @@ func CreatePostgreSQLBackup(host, port, username, password, tool, backupDir, cur
 
 		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 		cmd.Stdout = file
-		if auth {
-			cmd.Env = append(os.Environ(), "PGPASSWORD="+password)
+		if cfgValues.PostgreSQL.Auth.Enabled {
+			cmd.Env = append(os.Environ(), "PGPASSWORD="+cfgValues.PostgreSQL.Auth.Password)
 		}
 		err = cmd.Run()
 		if err != nil {
@@ -54,8 +55,15 @@ func CreatePostgreSQLBackup(host, port, username, password, tool, backupDir, cur
 	}
 
 	if success {
-		tarFilename := utils.TarFiles("postgres", currentDate, backupDir, files)
-		files = append(files, tarFilename...)
-		utils.CleanupFilesAndTar(files)
+		tarFilename := utils.TarFiles("postgres", currentDate, cfgValues.Default.BackupDir, files)
+		if len(tarFilename) == 0 {
+			logrus.Error("Error creating tar file.")
+			success = false
+		} else {
+			utils.UploadToS3(cfgValues, tarFilename, s3Cfg)
+			files = append(files, tarFilename...)
+			utils.CleanupFilesAndTar(files)
+		}
 	}
+	return success
 }

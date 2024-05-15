@@ -2,8 +2,9 @@ package configs
 
 type Config struct {
 	Default struct {
-		Bucket     string `yaml:"bucket"`
-		UseProfile struct {
+		StorageProvider string `yaml:"storageProvider"`
+		Bucket          string `yaml:"bucket"`
+		UseProfile      struct {
 			Enabled bool   `yaml:"enabled"`
 			Profile string `yaml:"profile"`
 		} `yaml:"useProfile"`
@@ -18,6 +19,10 @@ type Config struct {
 			RetentionPeriodMonthly int  `yaml:"retentionPeriodMonthly"`
 		} `yaml:"retention"`
 	} `yaml:"default"`
+	Minio struct {
+		Secure     bool   `yaml:"secure"`
+		S3Endpoint string `yaml:"s3Endpoint"`
+	} `yaml:"minio"`
 	Mongo struct {
 		Enabled   bool     `yaml:"enabled"`
 		Host      string   `yaml:"host"`
