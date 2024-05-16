@@ -1,5 +1,5 @@
 default:
-  storageProvider: aws
+  storageProvider: minio # possible values aws, minio
   bucket: example-bucket-name
   useProfile: 
     enabled: false

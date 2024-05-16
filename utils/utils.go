@@ -7,7 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/ku9nov/backup/configs"
+	"github.com/minio/minio-go/v7"
 	"github.com/sirupsen/logrus"
 )
 
@@ -104,5 +109,47 @@ func CleanupFilesAndTar(files []string) {
 		} else {
 			logrus.Infof("%s was removed successfully.", file)
 		}
+	}
+}
+
+func processFiles(object interface{}, cfgValues configs.Config, currentTime time.Time) {
+	var key string
+	var lastModified time.Time
+
+	switch obj := object.(type) {
+	case *s3.ListObjectsV2Output:
+		for _, object := range obj.Contents {
+			key = *object.Key
+			lastModified = *object.LastModified
+			processFileData(key, lastModified, cfgValues, currentTime)
+		}
+	case []minio.ObjectInfo:
+		for _, object := range obj {
+			key = object.Key
+			lastModified = object.LastModified
+			processFileData(key, lastModified, cfgValues, currentTime)
+		}
+	default:
+		logrus.Info("Unknown object type.")
+	}
+}
+
+func processFileData(key string, lastModified time.Time, cfgValues configs.Config, currentTime time.Time) {
+	age := currentTime.Sub(lastModified)
+	isFolder := strings.HasSuffix(key, "/")
+
+	if strings.HasPrefix(key, "daily/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodDaily)*24*time.Hour {
+		logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", key, lastModified, age)
+
+	}
+
+	if strings.HasPrefix(key, "weekly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodWeekly)*24*time.Hour*7 {
+		logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", key, lastModified, age)
+
+	}
+
+	if strings.HasPrefix(key, "monthly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodMonthly)*24*time.Hour*30 {
+		logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", key, lastModified, age)
+
 	}
 }
