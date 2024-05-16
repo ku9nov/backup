@@ -76,9 +76,21 @@ func CheckOldFilesInS3(cfgValues configs.Config, s3Client interface{}) {
 	logrus.Debug("Retention candidates:")
 	switch keys := objectKeys.(type) {
 	case []minio.ObjectInfo:
-		processFiles(keys, cfgValues, currentTime)
+		oldFiles := processFiles(keys, cfgValues, currentTime)
+		for _, oldFile := range oldFiles {
+			if oldFile.Key != "" {
+				logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", oldFile.Key, oldFile.LastModified, oldFile.Age)
+				removeFromS3(cfgValues, oldFile.Key, s3Client)
+			}
+		}
 	case *s3.ListObjectsV2Output:
-		processFiles(keys, cfgValues, currentTime)
+		oldFiles := processFiles(keys, cfgValues, currentTime)
+		for _, oldFile := range oldFiles {
+			if oldFile.Key != "" {
+				logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", oldFile.Key, oldFile.LastModified, oldFile.Age)
+				removeFromS3(cfgValues, oldFile.Key, s3Client)
+			}
+		}
 	default:
 		logrus.Errorf("Unknown object type.")
 	}
@@ -103,6 +115,17 @@ func UploadToS3(cfgValues configs.Config, tarFilename []string, s3Client interfa
 		for _, filename := range tarFilename {
 			client.UploadFileToS3(filename, cfgValues, dailyPrefix)
 		}
+	default:
+		logrus.Errorf("Unknown storage client type.")
+	}
+}
+
+func removeFromS3(cfgValues configs.Config, filename string, s3Client interface{}) {
+	switch client := s3Client.(type) {
+	case *MinioStorageClient:
+		client.RemoveFileFromS3(filename, cfgValues)
+	case *AWSS3StorageClient:
+		client.RemoveFileFromS3(filename, cfgValues)
 	default:
 		logrus.Errorf("Unknown storage client type.")
 	}

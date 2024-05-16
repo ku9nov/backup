@@ -53,12 +53,17 @@ func (c *AWSS3StorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	return nil
 }
 func (c *AWSS3StorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config) error {
-	// Remove object from MinIO
-	// err := c.Client.RemoveObject(context.TODO(), cfgValues.Default.Bucket, filename, minio.RemoveObjectOptions{})
+	// _, err := c.Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+	// 	Bucket: aws.String(cfgValues.Default.Bucket),
+	// 	Delete: &types.Delete{
+	// 		Objects: []types.ObjectIdentifier{
+	// 			{Key: aws.String(filename)},
+	// 		},
+	// 	},
+	// })
 	// if err != nil {
-	// 	return fmt.Errorf("failed to remove file %s from AWS s3: %v", filename, err)
+	// 	log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", cfgValues.Default.Bucket, err)
 	// }
-
 	logrus.Infof("%s was successfully removed from AWS s3.\n", filename)
 	return nil
 }

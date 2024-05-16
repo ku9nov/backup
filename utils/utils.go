@@ -16,6 +16,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type OldObject struct {
+	Key          string
+	LastModified time.Time
+	Age          time.Duration
+}
+
 func CheckToolIsExist(tool string) bool {
 	_, err := exec.LookPath(tool)
 	if err != nil {
@@ -24,6 +30,7 @@ func CheckToolIsExist(tool string) bool {
 	}
 	return true
 }
+
 func TarFiles(backupSource, currentDate, backupDir string, files []string) []string {
 	tarGzFilename := filepath.Join(backupDir, backupSource+"-"+currentDate+".tgz")
 
@@ -112,44 +119,43 @@ func CleanupFilesAndTar(files []string) {
 	}
 }
 
-func processFiles(object interface{}, cfgValues configs.Config, currentTime time.Time) {
+func processFiles(object interface{}, cfgValues configs.Config, currentTime time.Time) []OldObject {
 	var key string
 	var lastModified time.Time
-
+	var oldObjects []OldObject
 	switch obj := object.(type) {
 	case *s3.ListObjectsV2Output:
 		for _, object := range obj.Contents {
 			key = *object.Key
 			lastModified = *object.LastModified
-			processFileData(key, lastModified, cfgValues, currentTime)
+			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
 		}
 	case []minio.ObjectInfo:
 		for _, object := range obj {
 			key = object.Key
 			lastModified = object.LastModified
-			processFileData(key, lastModified, cfgValues, currentTime)
+			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
 		}
 	default:
 		logrus.Info("Unknown object type.")
 	}
+	return oldObjects
 }
 
-func processFileData(key string, lastModified time.Time, cfgValues configs.Config, currentTime time.Time) {
+func processFileData(key string, lastModified time.Time, cfgValues configs.Config, currentTime time.Time) OldObject {
 	age := currentTime.Sub(lastModified)
 	isFolder := strings.HasSuffix(key, "/")
 
 	if strings.HasPrefix(key, "daily/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodDaily)*24*time.Hour {
-		logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", key, lastModified, age)
-
+		return OldObject{Key: key, LastModified: lastModified, Age: age}
 	}
 
 	if strings.HasPrefix(key, "weekly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodWeekly)*24*time.Hour*7 {
-		logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", key, lastModified, age)
-
+		return OldObject{Key: key, LastModified: lastModified, Age: age}
 	}
 
 	if strings.HasPrefix(key, "monthly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodMonthly)*24*time.Hour*30 {
-		logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", key, lastModified, age)
-
+		return OldObject{Key: key, LastModified: lastModified, Age: age}
 	}
+	return OldObject{}
 }

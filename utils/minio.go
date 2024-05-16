@@ -59,10 +59,10 @@ func (c *MinioStorageClient) UploadFileToS3(filename string, cfgValues configs.C
 
 func (c *MinioStorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config) error {
 	// Remove object from MinIO
-	// err := c.Client.RemoveObject(context.TODO(), cfgValues.Default.Bucket, filename, minio.RemoveObjectOptions{})
-	// if err != nil {
-	// 	return fmt.Errorf("failed to remove file %s from MinIO: %v", filename, err)
-	// }
+	err := c.Client.RemoveObject(context.TODO(), cfgValues.Default.Bucket, filename, minio.RemoveObjectOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to remove file %s from MinIO: %v", filename, err)
+	}
 
 	logrus.Infof("%s was successfully removed from MinIO.\n", filename)
 	return nil
