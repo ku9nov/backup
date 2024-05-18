@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CreateMySQLBackup(cfgValues configs.Config, currentDate string, s3Cfg interface{}) bool {
+func CreateMySQLBackup(cfgValues configs.Config, currentDate string, s3Cfg utils.StorageClient) bool {
 	var files []string
 	success := false
 	success = utils.CheckToolIsExist(cfgValues.MySQL.DumpTool)

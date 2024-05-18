@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg interface{}) bool {
+func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg utils.StorageClient) bool {
 	var files []string
 	success := false
 	logrus.Info("MongoDB is enabled, executing MongoDB backup code...")

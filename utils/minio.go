@@ -15,7 +15,7 @@ type MinioStorageClient struct {
 	Client *minio.Client
 }
 
-func (c *MinioStorageClient) ListObjects(cfgValues configs.Config) ([]minio.ObjectInfo, error) {
+func (c *MinioStorageClient) ListObjects(cfgValues configs.Config) (interface{}, error) {
 	ctx := context.TODO()
 	objectsCh := c.Client.ListObjects(ctx, cfgValues.Default.Bucket, minio.ListObjectsOptions{
 		Prefix:    "",

@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CreatePostgreSQLBackup(cfgValues configs.Config, currentDate string, s3Cfg interface{}) bool {
+func CreatePostgreSQLBackup(cfgValues configs.Config, currentDate string, s3Cfg utils.StorageClient) bool {
 	var files []string
 	success := false
 	success = utils.CheckToolIsExist(cfgValues.PostgreSQL.DumpTool)

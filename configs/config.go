@@ -14,6 +14,7 @@ type Config struct {
 		BackupDir string `yaml:"backupDir"`
 		Retention struct {
 			Enabled                bool `yaml:"enabled"`
+			DryRun                 bool `yaml:"dryRun"`
 			RetentionPeriodDaily   int  `yaml:"retentionPeriodDaily"`
 			RetentionPeriodWeekly  int  `yaml:"retentionPeriodWeekly"`
 			RetentionPeriodMonthly int  `yaml:"retentionPeriodMonthly"`

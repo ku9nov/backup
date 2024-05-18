@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CreateAdditionalFilesBackup(cfgValues configs.Config, currentDate string, s3Cfg interface{}) bool {
+func CreateAdditionalFilesBackup(cfgValues configs.Config, currentDate string, s3Cfg utils.StorageClient) bool {
 	success := true
 	logrus.Info("Additional files enabled, processing files:")
 	for _, file := range cfgValues.Additional.Files {

@@ -10,6 +10,7 @@ default:
   backupDir: /tmp
   retention:
     enabled: true
+    dryRun: true
     retentionPeriodDaily: 7 # days
     retentionPeriodWeekly: 4 # weeks
     retentionPeriodMonthly: 6 # months 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/ku9nov/backup/configs"
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +17,7 @@ type AWSS3StorageClient struct {
 	Client *s3.Client
 }
 
-func (c *AWSS3StorageClient) ListObjects(cfgValues configs.Config) (*s3.ListObjectsV2Output, error) {
+func (c *AWSS3StorageClient) ListObjects(cfgValues configs.Config) (interface{}, error) {
 	output, err := c.Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(cfgValues.Default.Bucket),
 	})
@@ -53,17 +54,17 @@ func (c *AWSS3StorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	return nil
 }
 func (c *AWSS3StorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config) error {
-	// _, err := c.Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
-	// 	Bucket: aws.String(cfgValues.Default.Bucket),
-	// 	Delete: &types.Delete{
-	// 		Objects: []types.ObjectIdentifier{
-	// 			{Key: aws.String(filename)},
-	// 		},
-	// 	},
-	// })
-	// if err != nil {
-	// 	log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", cfgValues.Default.Bucket, err)
-	// }
+	_, err := c.Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+		Bucket: aws.String(cfgValues.Default.Bucket),
+		Delete: &types.Delete{
+			Objects: []types.ObjectIdentifier{
+				{Key: aws.String(filename)},
+			},
+		},
+	})
+	if err != nil {
+		logrus.Errorf("Couldn't delete objects from bucket %v. Here's why: %v\n", cfgValues.Default.Bucket, err)
+	}
 	logrus.Infof("%s was successfully removed from AWS s3.\n", filename)
 	return nil
 }
