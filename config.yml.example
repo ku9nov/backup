@@ -1,6 +1,6 @@
 default:
-  storageProvider: minio # possible values aws, minio
-  bucket: example-bucket-name
+  storageProvider: minio # possible values aws, minio, azure
+  bucket: example-bucket-name # in azure blob storage it's named container
   useProfile: 
     enabled: false
     profile: example-profile
@@ -18,6 +18,10 @@ default:
 minio:
   secure: false
   s3Endpoint: 172.25.0.2:9000
+
+azure:
+  storageAccountName: example
+  storageAccountKey: example-key
 
 # MongoDB config
 mongo:

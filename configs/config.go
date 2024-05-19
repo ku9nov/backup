@@ -24,6 +24,10 @@ type Config struct {
 		Secure     bool   `yaml:"secure"`
 		S3Endpoint string `yaml:"s3Endpoint"`
 	} `yaml:"minio"`
+	Azure struct {
+		StorageAccountName string `yaml:"storageAccountName"`
+		StorageAccountKey  string `yaml:"storageAccountKey"`
+	} `yaml:"azure"`
 	Mongo struct {
 		Enabled   bool     `yaml:"enabled"`
 		Host      string   `yaml:"host"`

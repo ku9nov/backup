@@ -2,16 +2,17 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ku9nov/backup/configs"
 	"github.com/minio/minio-go/v7"
 	minioCredentials "github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/sirupsen/logrus"
 )
 
 type StorageClient interface {
@@ -53,6 +54,19 @@ func CreateStorageClient(cfgValues configs.Config) StorageClient {
 			}
 			return &AWSS3StorageClient{Client: s3.NewFromConfig(cfg)}
 		}
+	case "azure":
+		svcUrl := fmt.Sprintf("https://%s.blob.core.windows.net", cfgValues.Azure.StorageAccountName)
+		azureAccountCred, err := azblob.NewSharedKeyCredential(cfgValues.Azure.StorageAccountName, cfgValues.Azure.StorageAccountKey)
+		if err != nil {
+			logrus.Errorf("error creating Azure Blob Storage shared key credential: %v", err)
+			return nil
+		}
+		credential, err := azblob.NewClientWithSharedKeyCredential(svcUrl, azureAccountCred, nil)
+		if err != nil {
+			logrus.Errorf("error creating Azure Blob Storage shared key credential: %v", err)
+			return nil
+		}
+		return &AzureStorageClient{Client: credential, BlobServiceURL: svcUrl}
 	default:
 		logrus.Errorf("Unknown storage driver: %s", cfgValues.Default.StorageProvider)
 		return nil

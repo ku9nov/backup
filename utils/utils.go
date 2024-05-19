@@ -136,6 +136,12 @@ func processFiles(object interface{}, cfgValues configs.Config, currentTime time
 			lastModified = object.LastModified
 			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
 		}
+	case []FileMetadata:
+		for _, object := range obj {
+			key = object.Name
+			lastModified = object.LastModified
+			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
+		}
 	default:
 		logrus.Info("Unknown object type.")
 	}
