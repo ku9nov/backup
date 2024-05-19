@@ -120,27 +120,22 @@ func CleanupFilesAndTar(files []string) {
 }
 
 func processFiles(object interface{}, cfgValues configs.Config, currentTime time.Time) []OldObject {
-	var key string
-	var lastModified time.Time
 	var oldObjects []OldObject
+	processFile := func(key string, lastModified time.Time) {
+		oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
+	}
 	switch obj := object.(type) {
 	case *s3.ListObjectsV2Output:
 		for _, object := range obj.Contents {
-			key = *object.Key
-			lastModified = *object.LastModified
-			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
+			processFile(*object.Key, *object.LastModified)
 		}
 	case []minio.ObjectInfo:
 		for _, object := range obj {
-			key = object.Key
-			lastModified = object.LastModified
-			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
+			processFile(object.Key, object.LastModified)
 		}
 	case []FileMetadata:
 		for _, object := range obj {
-			key = object.Name
-			lastModified = object.LastModified
-			oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
+			processFile(object.Name, object.LastModified)
 		}
 	default:
 		logrus.Info("Unknown object type.")
