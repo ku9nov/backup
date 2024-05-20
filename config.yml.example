@@ -1,75 +1,84 @@
+# This YAML file serves as a configuration file for a backup service, providing settings for various storage providers and databases, as well as additional backup files.
+
 default:
-  storageProvider: minio # possible values aws, minio, azure
-  bucket: example-bucket-name # in azure blob storage it's named container
-  useProfile: 
-    enabled: false
-    profile: example-profile
-  accessKey: example-access-key
-  secretKey: example-secret-key
-  region: us-east-1
-  backupDir: /tmp
+  # Configuration for default settings applicable to all storage providers
+  storageProvider: minio # The storage provider to be used; possible values are aws, minio, azure
+  bucket: example-bucket-name # Name of the bucket where backups will be stored; in Azure Blob storage, it's referred to as container
+  useProfile:  # Configuration related to AWS profile usage
+    enabled: false # Indicates whether to use an AWS profile; if true, the profile specified below will be used
+    profile: example-profile # Name of the AWS profile to be used if enabled is set to true
+  accessKey: example-access-key # Access key used in AWS if the profile is disabled and in MinIO servers
+  secretKey: example-secret-key # Secret key used in AWS if the profile is disabled and in MinIO servers
+  region: us-east-1 # The region where the storage provider is located
+  backupDir: /tmp # Directory where backups will be stored locally before being transferred to the storage provider
   retention:
-    enabled: true
-    dryRun: true
-    retentionPeriodDaily: 7 # days
-    retentionPeriodWeekly: 4 # weeks
-    retentionPeriodMonthly: 6 # months 
-    
+    enabled: true # Indicates whether file retention is enabled
+    dryRun: true # If true, delete functions will be run without actually removing files; useful for testing
+    retentionPeriodDaily: 7 # Number of days after which files will be deleted
+    retentionPeriodWeekly: 4 # Number of weeks after which files will be deleted
+    retentionPeriodMonthly: 6 # Number of months after which files will be deleted
+
 minio:
-  secure: false
-  s3Endpoint: 172.25.0.2:9000
+  # Configuration specific to MinIO storage provider
+  secure: false # Indicates whether to use secure connection
+  s3Endpoint: 172.25.0.2:9000 # Endpoint of the MinIO server
 
 azure:
-  storageAccountName: example
-  storageAccountKey: example-key
+  # Configuration specific to Azure storage provider
+  storageAccountName: example # Name of the Azure storage account
+  storageAccountKey: example-key # Key for accessing the Azure storage account
 
 # MongoDB config
 mongo:
-  enabled: false
-  host: 127.0.0.1
-  port: 27017
-  dumpTool: mongodump
+  # Configuration for MongoDB backups
+  enabled: false # Indicates whether MongoDB backups are enabled
+  host: 127.0.0.1 # Host address of the MongoDB server
+  port: 27017 # Port number of the MongoDB server
+  dumpTool: mongodump # Tool used for dumping MongoDB databases
   databases:
     - first
-    - second 
+    - second # List of databases to be backed up
   auth:
-    enabled: false
-    authDatabase: admin
-    username: example-username
-    password: example-password
+    enabled: false # Indicates whether authentication is enabled for MongoDB
+    authDatabase: admin # Name of the authentication database
+    username: example-username # Username for authenticating with MongoDB
+    password: example-password # Password for authenticating with MongoDB
 
 # MySQL config
 mysql:
-  enabled: true
-  host: 127.0.0.1
-  port: 3306
-  dumpTool: mysqldump
+  # Configuration for MySQL backups
+  enabled: true # Indicates whether MySQL backups are enabled
+  host: 127.0.0.1 # Host address of the MySQL server
+  port: 3306 # Port number of the MySQL server
+  dumpTool: mysqldump # Tool used for dumping MySQL databases
   databases:
     - first
-    - second 
+    - second # List of databases to be backed up
   auth:
-    enabled: true
-    username: example-username
-    password: example-password
+    enabled: true # Indicates whether authentication is enabled for MySQL
+    username: example-username # Username for authenticating with MySQL
+    password: example-password # Password for authenticating with MySQL
 
 # PostgreSQL config
 postgresql:
-  enabled: true
-  host: 127.0.0.1
-  port: 5432
-  dumpTool: pg_dump
+  # Configuration for PostgreSQL backups
+  enabled: true # Indicates whether PostgreSQL backups are enabled
+  host: 127.0.0.1 # Host address of the PostgreSQL server
+  port: 5432 # Port number of the PostgreSQL server
+  dumpTool: pg_dump # Tool used for dumping PostgreSQL databases
   databases:
     - first
-    - second 
+    - second # List of databases to be backed up
   auth:
-    enabled: true
-    username: example-username
-    password: example-password
+    enabled: true # Indicates whether authentication is enabled for PostgreSQL
+    username: example-username # Username for authenticating with PostgreSQL
+    password: example-password # Password for authenticating with PostgreSQL
 
 # Backup files
 additional:
-  enabled: true
+  # Configuration for additional files and folders to be backed up
+  enabled: true # Indicates whether additional file backups are enabled
   files:
     - /path/to/first/file
-    - /path/to/second/file 
-    # etc...
+    - /path/to/second/file # List of files to be backed up
+    # All files and folders from this list will be archived to etc-$DATE.tar.gz
