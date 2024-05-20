@@ -1,0 +1,5 @@
+[Unit]
+Description=Backup Starter
+
+[Service]
+ExecStart=/usr/bin/backup -loglevel=debug -config=/etc/backup/config.yaml
