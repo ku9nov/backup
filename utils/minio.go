@@ -51,10 +51,10 @@ func (c *MinioStorageClient) UploadFileToS3(filename string, cfgValues configs.C
 		ContentType: "application/octet-stream",
 	})
 	if err != nil {
-		return fmt.Errorf("failed to upload file %s to MinIO: %v", filename, err)
+		return fmt.Errorf("failed to upload file %s to MinIO/Spaces: %v", filename, err)
 	}
 
-	logrus.Infof("%s was successfully uploaded to MinIO.\n", filename)
+	logrus.Infof("%s was successfully uploaded to MinIO/Spaces.\n", filename)
 	return nil
 }
 
@@ -63,9 +63,9 @@ func (c *MinioStorageClient) RemoveFileFromS3(filename string, cfgValues configs
 	// Remove object from MinIO
 	err := c.Client.RemoveObject(context.TODO(), bucketName, filename, minio.RemoveObjectOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to remove file %s from MinIO: %v", filename, err)
+		return fmt.Errorf("failed to remove file %s from MinIO/Spaces: %v", filename, err)
 	}
 
-	logrus.Infof("%s was successfully removed from MinIO.\n", filename)
+	logrus.Infof("%s was successfully removed from MinIO/Spaces.\n", filename)
 	return nil
 }

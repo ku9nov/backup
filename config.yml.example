@@ -19,9 +19,9 @@ default:
     retentionPeriodMonthly: 6 # Number of months after which files will be deleted
 
 minio:
-  # Configuration specific to MinIO storage provider
-  secure: false # Indicates whether to use secure connection
-  s3Endpoint: 172.25.0.2:9000 # Endpoint of the MinIO server
+  # Configuration specific to MinIO/Spaces storage provider
+  secure: false # Indicates whether to use secure connection. Always true using Digital Ocean Spaces
+  s3Endpoint: 172.25.0.2:9000 # Endpoint of the MinIO server or Digital Ocean Spaces
 
 azure:
   # Configuration specific to Azure storage provider

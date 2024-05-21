@@ -25,7 +25,7 @@ func SetStorageClient(cfgValues configs.Config) (StorageClient, StorageClient) {
 	var mainClient, extraClient StorageClient
 
 	switch cfgValues.Default.StorageProvider {
-	case "minio", "aws", "azure":
+	case "minio", "aws", "azure", "spaces":
 		mainClient = CreateStorageClient(cfgValues, cfgValues.Default.StorageProvider, false)
 	default:
 		logrus.Errorf("Unknown default storage driver: %s", cfgValues.Default.StorageProvider)
@@ -34,7 +34,7 @@ func SetStorageClient(cfgValues configs.Config) (StorageClient, StorageClient) {
 
 	if cfgValues.ExtraBackups.Enabled {
 		switch cfgValues.ExtraBackups.StorageProvider {
-		case "minio", "aws", "azure":
+		case "minio", "aws", "azure", "spaces":
 			extraClient = CreateStorageClient(cfgValues, cfgValues.ExtraBackups.StorageProvider, true)
 		default:
 			logrus.Errorf("Unknown extra backup storage driver: %s", cfgValues.ExtraBackups.StorageProvider)
@@ -62,7 +62,7 @@ func CreateStorageClient(cfgValues configs.Config, provider string, isExtraClien
 		region = cfgValues.ExtraBackups.Region
 	}
 	switch provider {
-	case "minio":
+	case "minio", "spaces":
 		minioClient, err := minio.New(cfgValues.Minio.S3Endpoint, &minio.Options{
 			Creds:  minioCredentials.NewStaticV4(accessKey, secretKey, ""),
 			Secure: cfgValues.Minio.Secure,
