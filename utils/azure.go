@@ -22,8 +22,9 @@ type FileMetadata struct {
 	LastModified time.Time
 }
 
-func (c *AzureStorageClient) ListObjects(cfgValues configs.Config) (interface{}, error) {
-	pager := c.Client.NewListBlobsFlatPager(cfgValues.Default.Bucket, nil)
+func (c *AzureStorageClient) ListObjects(cfgValues configs.Config, isExtraClient bool) (interface{}, error) {
+	bucketName := getBucketName(cfgValues, isExtraClient)
+	pager := c.Client.NewListBlobsFlatPager(bucketName, nil)
 	var files []FileMetadata
 	for pager.More() {
 		resp, err := pager.NextPage(context.TODO())
@@ -40,14 +41,14 @@ func (c *AzureStorageClient) ListObjects(cfgValues configs.Config) (interface{},
 	}
 	return files, nil
 }
-func (c *AzureStorageClient) UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string) error {
+func (c *AzureStorageClient) UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string, isExtraClient bool) error {
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	file, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %v", filename, err)
 	}
 	defer file.Close()
-
-	_, err = c.Client.UploadFile(context.TODO(), cfgValues.Default.Bucket, dailyPrefix+filepath.Base(filename), file,
+	_, err = c.Client.UploadFile(context.TODO(), bucketName, dailyPrefix+filepath.Base(filename), file,
 		&azblob.UploadFileOptions{
 			BlockSize:   int64(1024),
 			Concurrency: uint16(3),
@@ -60,9 +61,10 @@ func (c *AzureStorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	logrus.Infof("%s was successfully uploaded to Azure Blob Storage.\n", filename)
 	return nil
 }
-func (c *AzureStorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config) error {
 
-	_, err := c.Client.DeleteBlob(context.TODO(), cfgValues.Default.Bucket, filename, nil)
+func (c *AzureStorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config, isExtraClient bool) error {
+	bucketName := getBucketName(cfgValues, isExtraClient)
+	_, err := c.Client.DeleteBlob(context.TODO(), bucketName, filename, nil)
 	if err != nil {
 		return fmt.Errorf("failed to delete blob from Azure storage: %v", err)
 	}

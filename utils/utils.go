@@ -3,6 +3,7 @@ package utils
 import (
 	"archive/tar"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -119,10 +120,10 @@ func CleanupFilesAndTar(files []string) {
 	}
 }
 
-func processFiles(object interface{}, cfgValues configs.Config, currentTime time.Time) []OldObject {
+func processFiles(object interface{}, cfgValues configs.Config, currentTime time.Time, isExtraClient bool) []OldObject {
 	var oldObjects []OldObject
 	processFile := func(key string, lastModified time.Time) {
-		oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime))
+		oldObjects = append(oldObjects, processFileData(key, lastModified, cfgValues, currentTime, isExtraClient))
 	}
 	switch obj := object.(type) {
 	case *s3.ListObjectsV2Output:
@@ -143,20 +144,46 @@ func processFiles(object interface{}, cfgValues configs.Config, currentTime time
 	return oldObjects
 }
 
-func processFileData(key string, lastModified time.Time, cfgValues configs.Config, currentTime time.Time) OldObject {
+func processFileData(key string, lastModified time.Time, cfgValues configs.Config, currentTime time.Time, isExtraClient bool) OldObject {
 	age := currentTime.Sub(lastModified)
 	isFolder := strings.HasSuffix(key, "/")
+	if isExtraClient {
+		if strings.HasPrefix(key, fmt.Sprintf(cfgValues.Default.Bucket+"/")) && !isFolder && age > time.Duration(cfgValues.ExtraBackups.Retention.RetentionPeriodDaily)*24*time.Hour {
+			return OldObject{Key: key, LastModified: lastModified, Age: age}
+		}
+	} else {
+		if strings.HasPrefix(key, "daily/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodDaily)*24*time.Hour {
+			return OldObject{Key: key, LastModified: lastModified, Age: age}
+		}
 
-	if strings.HasPrefix(key, "daily/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodDaily)*24*time.Hour {
-		return OldObject{Key: key, LastModified: lastModified, Age: age}
+		if strings.HasPrefix(key, "weekly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodWeekly)*24*time.Hour*7 {
+			return OldObject{Key: key, LastModified: lastModified, Age: age}
+		}
+
+		if strings.HasPrefix(key, "monthly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodMonthly)*24*time.Hour*30 {
+			return OldObject{Key: key, LastModified: lastModified, Age: age}
+		}
 	}
 
-	if strings.HasPrefix(key, "weekly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodWeekly)*24*time.Hour*7 {
-		return OldObject{Key: key, LastModified: lastModified, Age: age}
-	}
-
-	if strings.HasPrefix(key, "monthly/") && !isFolder && age > time.Duration(cfgValues.Default.Retention.RetentionPeriodMonthly)*24*time.Hour*30 {
-		return OldObject{Key: key, LastModified: lastModified, Age: age}
-	}
 	return OldObject{}
+}
+
+func setDailyPrefix() string {
+	today := time.Now()
+	dailyPrefix := "daily/"
+	switch today.Weekday() {
+	case time.Monday:
+		dailyPrefix = "weekly/"
+	}
+	if today.Day() == 1 {
+		dailyPrefix = "monthly/"
+	}
+	return dailyPrefix
+}
+
+func getBucketName(cfgValues configs.Config, isExtraClient bool) string {
+	if isExtraClient {
+		return cfgValues.ExtraBackups.Bucket
+	}
+	return cfgValues.Default.Bucket
 }

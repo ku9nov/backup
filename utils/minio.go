@@ -15,9 +15,10 @@ type MinioStorageClient struct {
 	Client *minio.Client
 }
 
-func (c *MinioStorageClient) ListObjects(cfgValues configs.Config) (interface{}, error) {
+func (c *MinioStorageClient) ListObjects(cfgValues configs.Config, isExtraClient bool) (interface{}, error) {
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	ctx := context.TODO()
-	objectsCh := c.Client.ListObjects(ctx, cfgValues.Default.Bucket, minio.ListObjectsOptions{
+	objectsCh := c.Client.ListObjects(ctx, bucketName, minio.ListObjectsOptions{
 		Prefix:    "",
 		Recursive: true,
 	})
@@ -32,7 +33,7 @@ func (c *MinioStorageClient) ListObjects(cfgValues configs.Config) (interface{},
 	return objects, nil
 }
 
-func (c *MinioStorageClient) UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string) error {
+func (c *MinioStorageClient) UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string, isExtraClient bool) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %v", filename, err)
@@ -44,9 +45,9 @@ func (c *MinioStorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	if err != nil {
 		return fmt.Errorf("failed to get file info for %s: %v", filename, err)
 	}
-
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	// Upload file to MinIO
-	_, err = c.Client.PutObject(context.TODO(), cfgValues.Default.Bucket, dailyPrefix+filepath.Base(filename), file, fileInfo.Size(), minio.PutObjectOptions{
+	_, err = c.Client.PutObject(context.TODO(), bucketName, dailyPrefix+filepath.Base(filename), file, fileInfo.Size(), minio.PutObjectOptions{
 		ContentType: "application/octet-stream",
 	})
 	if err != nil {
@@ -57,9 +58,10 @@ func (c *MinioStorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	return nil
 }
 
-func (c *MinioStorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config) error {
+func (c *MinioStorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config, isExtraClient bool) error {
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	// Remove object from MinIO
-	err := c.Client.RemoveObject(context.TODO(), cfgValues.Default.Bucket, filename, minio.RemoveObjectOptions{})
+	err := c.Client.RemoveObject(context.TODO(), bucketName, filename, minio.RemoveObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to remove file %s from MinIO: %v", filename, err)
 	}

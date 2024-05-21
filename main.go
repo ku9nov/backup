@@ -75,34 +75,37 @@ func (configs mainConfig) Run() {
 	currentDate := time.Now().Format("20060102")
 	logrus.Infof("Default bucket: %s", configs.Default.Bucket)
 	logrus.Infof("Retention enabled: %t.", configs.Default.Retention.Enabled)
-	s3Cfg := utils.CreateStorageClient(*configs.Config)
+	s3Cfg, extraS3Cfg := utils.SetStorageClient(*configs.Config)
 	allBackupsSuccessful := true
 	// MongoDB configuration
 	if configs.Mongo.Enabled {
-		if !backup.CreateMongoBackup(*configs.Config, currentDate, s3Cfg) {
+		if !backup.CreateMongoBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
 			allBackupsSuccessful = false
 		}
 	}
 	// MySQL configuration
 	if configs.MySQL.Enabled {
-		if !backup.CreateMySQLBackup(*configs.Config, currentDate, s3Cfg) {
+		if !backup.CreateMySQLBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
 			allBackupsSuccessful = false
 		}
 	}
 	// PostgreSQL configuration
 	if configs.PostgreSQL.Enabled {
-		if !backup.CreatePostgreSQLBackup(*configs.Config, currentDate, s3Cfg) {
+		if !backup.CreatePostgreSQLBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
 			allBackupsSuccessful = false
 		}
 	}
 	// Additional configurations
 	if configs.Additional.Enabled {
-		if !backup.CreateAdditionalFilesBackup(*configs.Config, currentDate, s3Cfg) {
+		if !backup.CreateAdditionalFilesBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
 			allBackupsSuccessful = false
 		}
 	}
 	if allBackupsSuccessful && configs.Default.Retention.Enabled {
-		utils.CheckOldFilesInS3(*configs.Config, s3Cfg)
+		utils.CheckOldFilesInS3(*configs.Config, s3Cfg, false)
+	}
+	if allBackupsSuccessful && configs.ExtraBackups.Enabled && configs.ExtraBackups.Retention.Enabled {
+		utils.CheckOldFilesInS3(*configs.Config, extraS3Cfg, true)
 	}
 }
 

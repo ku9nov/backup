@@ -2,7 +2,7 @@
 
 default:
   # Configuration for default settings applicable to all storage providers
-  storageProvider: minio # The storage provider to be used; possible values are aws, minio, azure
+  storageProvider: minio # The storage provider to be used; possible values are aws, minio, azure, spaces
   bucket: example-bucket-name # Name of the bucket where backups will be stored; in Azure Blob storage, it's referred to as container
   useProfile:  # Configuration related to AWS profile usage
     enabled: false # Indicates whether to use an AWS profile; if true, the profile specified below will be used
@@ -82,3 +82,18 @@ additional:
     - /path/to/first/file
     - /path/to/second/file # List of files to be backed up
     # All files and folders from this list will be archived to etc-$DATE.tar.gz
+
+extraBackups:
+  enabled: true
+  storageProvider: spaces # The storage provider to be used; possible values are aws, azure, spaces, minio
+  bucket: example-bucket-name # Name of the bucket where backups will be stored; in Azure Blob storage, it's referred to as container
+  useProfile:  # Configuration related to AWS profile usage
+    enabled: false # Indicates whether to use an AWS profile; if true, the profile specified below will be used
+    profile: example-profile # Name of the AWS profile to be used if enabled is set to true
+  accessKey: example-access-key # Access key used in AWS if the profile is disabled and in MinIO servers
+  secretKey: example-secret-key # Secret key used in AWS if the profile is disabled and in MinIO servers
+  region: us-east-1 # The region where the storage provider is located
+  retention:
+    enabled: true # Indicates whether file retention is enabled
+    dryRun: true # If true, delete functions will be run without actually removing files; useful for testing
+    retentionPeriodDaily: 7 # Number of days after which files will be deleted

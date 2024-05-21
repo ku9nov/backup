@@ -16,14 +16,38 @@ import (
 )
 
 type StorageClient interface {
-	ListObjects(cfgValues configs.Config) (interface{}, error)
-	RemoveFileFromS3(filename string, cfgValues configs.Config) error
-	UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string) error
+	ListObjects(cfgValues configs.Config, isExtraClient bool) (interface{}, error)
+	RemoveFileFromS3(filename string, cfgValues configs.Config, isExtraClient bool) error
+	UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string, isExtraClient bool) error
 }
 
-func CreateStorageClient(cfgValues configs.Config) StorageClient {
+func SetStorageClient(cfgValues configs.Config) (StorageClient, StorageClient) {
+	var mainClient, extraClient StorageClient
 
 	switch cfgValues.Default.StorageProvider {
+	case "minio", "aws", "azure":
+		mainClient = CreateStorageClient(cfgValues, cfgValues.Default.StorageProvider)
+	default:
+		logrus.Errorf("Unknown default storage driver: %s", cfgValues.Default.StorageProvider)
+		return nil, nil
+	}
+
+	if cfgValues.ExtraBackups.Enabled {
+		switch cfgValues.ExtraBackups.StorageProvider {
+		case "minio", "aws", "azure":
+			extraClient = CreateStorageClient(cfgValues, cfgValues.ExtraBackups.StorageProvider)
+		default:
+			logrus.Errorf("Unknown extra backup storage driver: %s", cfgValues.ExtraBackups.StorageProvider)
+			return nil, nil
+		}
+	}
+
+	return mainClient, extraClient
+}
+
+func CreateStorageClient(cfgValues configs.Config, provider string) StorageClient {
+
+	switch provider {
 	case "minio":
 		minioClient, err := minio.New(cfgValues.Minio.S3Endpoint, &minio.Options{
 			Creds:  minioCredentials.NewStaticV4(cfgValues.Default.AccessKey, cfgValues.Default.SecretKey, ""),
@@ -73,35 +97,33 @@ func CreateStorageClient(cfgValues configs.Config) StorageClient {
 	}
 }
 
-func CheckOldFilesInS3(cfgValues configs.Config, s3Client StorageClient) {
-	objectKeys, err := s3Client.ListObjects(cfgValues)
+func CheckOldFilesInS3(cfgValues configs.Config, s3Client StorageClient, isExtraClient bool) {
+	objectKeys, err := s3Client.ListObjects(cfgValues, isExtraClient)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 	currentTime := time.Now()
 	logrus.Debug("Retention candidates:")
-	oldFiles := processFiles(objectKeys, cfgValues, currentTime)
+	oldFiles := processFiles(objectKeys, cfgValues, currentTime, isExtraClient)
 	for _, oldFile := range oldFiles {
 		if oldFile.Key != "" {
 			logrus.Debugf("Key: %s, Last Modified: %v, Age: %v", oldFile.Key, oldFile.LastModified, oldFile.Age)
 			if !cfgValues.Default.Retention.DryRun {
-				s3Client.RemoveFileFromS3(oldFile.Key, cfgValues)
+				s3Client.RemoveFileFromS3(oldFile.Key, cfgValues, false)
+			}
+			if isExtraClient && !cfgValues.ExtraBackups.Retention.DryRun {
+				s3Client.RemoveFileFromS3(oldFile.Key, cfgValues, true)
 			}
 		}
 	}
 }
 
-func UploadToS3(cfgValues configs.Config, tarFilename []string, s3Client StorageClient) {
-	today := time.Now()
-	dailyPrefix := "daily/"
-	switch today.Weekday() {
-	case time.Monday:
-		dailyPrefix = "weekly/"
-	}
-	if today.Day() == 1 {
-		dailyPrefix = "monthly/"
-	}
+func UploadToS3(cfgValues configs.Config, tarFilename []string, s3Client, extraS3Client StorageClient) {
+	dailyPrefix := setDailyPrefix()
 	for _, filename := range tarFilename {
-		s3Client.UploadFileToS3(filename, cfgValues, dailyPrefix)
+		s3Client.UploadFileToS3(filename, cfgValues, dailyPrefix, false)
+		if cfgValues.ExtraBackups.Enabled {
+			extraS3Client.UploadFileToS3(filename, cfgValues, fmt.Sprintf(cfgValues.Default.Bucket+"/"), true)
+		}
 	}
 }

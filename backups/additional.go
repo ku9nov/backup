@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CreateAdditionalFilesBackup(cfgValues configs.Config, currentDate string, s3Cfg utils.StorageClient) bool {
+func CreateAdditionalFilesBackup(cfgValues configs.Config, currentDate string, s3Cfg, extraS3Cfg utils.StorageClient) bool {
 	success := true
 	logrus.Info("Additional files enabled, processing files:")
 	for _, file := range cfgValues.Additional.Files {
@@ -17,7 +17,7 @@ func CreateAdditionalFilesBackup(cfgValues configs.Config, currentDate string, s
 		logrus.Error("Error creating tar file.")
 		success = false
 	} else {
-		utils.UploadToS3(cfgValues, tarFilename, s3Cfg)
+		utils.UploadToS3(cfgValues, tarFilename, s3Cfg, extraS3Cfg)
 		utils.CleanupFilesAndTar(tarFilename)
 	}
 	return success

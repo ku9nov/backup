@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg utils.StorageClient) bool {
+func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg, extraS3Cfg utils.StorageClient) bool {
 	var files []string
 	success := false
 	logrus.Info("MongoDB is enabled, executing MongoDB backup code...")
@@ -45,7 +45,7 @@ func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg utils
 			logrus.Error("Error creating tar file.")
 			success = false
 		} else {
-			utils.UploadToS3(cfgValues, tarFilename, s3Cfg)
+			utils.UploadToS3(cfgValues, tarFilename, s3Cfg, extraS3Cfg)
 			files = append(files, tarFilename...)
 			utils.CleanupFilesAndTar(files)
 		}

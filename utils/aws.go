@@ -17,9 +17,10 @@ type AWSS3StorageClient struct {
 	Client *s3.Client
 }
 
-func (c *AWSS3StorageClient) ListObjects(cfgValues configs.Config) (interface{}, error) {
+func (c *AWSS3StorageClient) ListObjects(cfgValues configs.Config, isExtraClient bool) (interface{}, error) {
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	output, err := c.Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-		Bucket: aws.String(cfgValues.Default.Bucket),
+		Bucket: aws.String(bucketName),
 	})
 	if err != nil {
 		return nil, err
@@ -27,7 +28,8 @@ func (c *AWSS3StorageClient) ListObjects(cfgValues configs.Config) (interface{},
 	return output, nil
 }
 
-func (c *AWSS3StorageClient) UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string) error {
+func (c *AWSS3StorageClient) UploadFileToS3(filename string, cfgValues configs.Config, dailyPrefix string, isExtraClient bool) error {
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	file, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %v", filename, err)
@@ -38,9 +40,8 @@ func (c *AWSS3StorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	if err != nil {
 		return fmt.Errorf("failed to get file info for %s: %v", filename, err)
 	}
-
 	_, err = c.Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket:        aws.String(cfgValues.Default.Bucket),
+		Bucket:        aws.String(bucketName),
 		Key:           aws.String(dailyPrefix + filepath.Base(filename)), // Adjust key to include daily, weekly, or monthly prefix
 		Body:          file,
 		ContentType:   aws.String("application/octet-stream"),
@@ -53,9 +54,10 @@ func (c *AWSS3StorageClient) UploadFileToS3(filename string, cfgValues configs.C
 	logrus.Infof("%s was successfully uploaded to S3.\n", filename)
 	return nil
 }
-func (c *AWSS3StorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config) error {
+func (c *AWSS3StorageClient) RemoveFileFromS3(filename string, cfgValues configs.Config, isExtraClient bool) error {
+	bucketName := getBucketName(cfgValues, isExtraClient)
 	_, err := c.Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
-		Bucket: aws.String(cfgValues.Default.Bucket),
+		Bucket: aws.String(bucketName),
 		Delete: &types.Delete{
 			Objects: []types.ObjectIdentifier{
 				{Key: aws.String(filename)},

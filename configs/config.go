@@ -69,4 +69,21 @@ type Config struct {
 		Enabled bool     `yaml:"enabled"`
 		Files   []string `yaml:"files"`
 	} `yaml:"additional"`
+	ExtraBackups struct {
+		Enabled         bool   `yaml:"enabled"`
+		StorageProvider string `yaml:"storageProvider"`
+		Bucket          string `yaml:"bucket"`
+		UseProfile      struct {
+			Enabled bool   `yaml:"enabled"`
+			Profile string `yaml:"profile"`
+		} `yaml:"useProfile"`
+		AccessKey string `yaml:"accessKey"`
+		SecretKey string `yaml:"secretKey"`
+		Region    string `yaml:"region"`
+		Retention struct {
+			Enabled              bool `yaml:"enabled"`
+			DryRun               bool `yaml:"dryRun"`
+			RetentionPeriodDaily int  `yaml:"retentionPeriodDaily"`
+		} `yaml:"retention"`
+	} `yaml:"extraBackups"`
 }
