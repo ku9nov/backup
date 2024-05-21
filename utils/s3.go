@@ -26,7 +26,7 @@ func SetStorageClient(cfgValues configs.Config) (StorageClient, StorageClient) {
 
 	switch cfgValues.Default.StorageProvider {
 	case "minio", "aws", "azure":
-		mainClient = CreateStorageClient(cfgValues, cfgValues.Default.StorageProvider)
+		mainClient = CreateStorageClient(cfgValues, cfgValues.Default.StorageProvider, false)
 	default:
 		logrus.Errorf("Unknown default storage driver: %s", cfgValues.Default.StorageProvider)
 		return nil, nil
@@ -35,7 +35,7 @@ func SetStorageClient(cfgValues configs.Config) (StorageClient, StorageClient) {
 	if cfgValues.ExtraBackups.Enabled {
 		switch cfgValues.ExtraBackups.StorageProvider {
 		case "minio", "aws", "azure":
-			extraClient = CreateStorageClient(cfgValues, cfgValues.ExtraBackups.StorageProvider)
+			extraClient = CreateStorageClient(cfgValues, cfgValues.ExtraBackups.StorageProvider, true)
 		default:
 			logrus.Errorf("Unknown extra backup storage driver: %s", cfgValues.ExtraBackups.StorageProvider)
 			return nil, nil
@@ -45,12 +45,26 @@ func SetStorageClient(cfgValues configs.Config) (StorageClient, StorageClient) {
 	return mainClient, extraClient
 }
 
-func CreateStorageClient(cfgValues configs.Config, provider string) StorageClient {
-
+func CreateStorageClient(cfgValues configs.Config, provider string, isExtraClient bool) StorageClient {
+	var accessKey, secretKey, profile, region string
+	var useProfile bool
+	if !isExtraClient {
+		accessKey = cfgValues.Default.AccessKey
+		secretKey = cfgValues.Default.SecretKey
+		useProfile = cfgValues.Default.UseProfile.Enabled
+		profile = cfgValues.Default.UseProfile.Profile
+		region = cfgValues.Default.Region
+	} else {
+		accessKey = cfgValues.ExtraBackups.AccessKey
+		secretKey = cfgValues.ExtraBackups.SecretKey
+		useProfile = cfgValues.ExtraBackups.UseProfile.Enabled
+		profile = cfgValues.ExtraBackups.UseProfile.Profile
+		region = cfgValues.ExtraBackups.Region
+	}
 	switch provider {
 	case "minio":
 		minioClient, err := minio.New(cfgValues.Minio.S3Endpoint, &minio.Options{
-			Creds:  minioCredentials.NewStaticV4(cfgValues.Default.AccessKey, cfgValues.Default.SecretKey, ""),
+			Creds:  minioCredentials.NewStaticV4(accessKey, secretKey, ""),
 			Secure: cfgValues.Minio.Secure,
 		})
 		if err != nil {
@@ -61,18 +75,18 @@ func CreateStorageClient(cfgValues configs.Config, provider string) StorageClien
 
 	case "aws":
 		if cfgValues.Default.UseProfile.Enabled {
-			logrus.Infof("The use profile is: %t, profile: %s", cfgValues.Default.UseProfile.Enabled, cfgValues.Default.UseProfile.Profile)
+			logrus.Infof("The use profile is: %t, profile: %s", useProfile, profile)
 			cfg, err := config.LoadDefaultConfig(context.TODO(),
-				config.WithSharedConfigProfile(cfgValues.Default.UseProfile.Profile),
+				config.WithSharedConfigProfile(profile),
 			)
 			if err != nil {
 				logrus.Panicf("Failed loading config, %v", err)
 			}
 			return &AWSS3StorageClient{Client: s3.NewFromConfig(cfg)}
 		} else {
-			logrus.Infof("The use profile is: %t. Keys will be used as credentials.", cfgValues.Default.UseProfile.Enabled)
-			creds := credentials.NewStaticCredentialsProvider(cfgValues.Default.AccessKey, cfgValues.Default.SecretKey, "")
-			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(creds), config.WithRegion(cfgValues.Default.Region))
+			logrus.Infof("The use profile is: %t. Keys will be used as credentials.", useProfile)
+			creds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")
+			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(creds), config.WithRegion(region))
 			if err != nil {
 				logrus.Panicf("Failed authentication using keys as credentials: %v", err)
 			}
@@ -92,7 +106,7 @@ func CreateStorageClient(cfgValues configs.Config, provider string) StorageClien
 		}
 		return &AzureStorageClient{Client: credential, BlobServiceURL: svcUrl}
 	default:
-		logrus.Errorf("Unknown storage driver: %s", cfgValues.Default.StorageProvider)
+		logrus.Errorf("Unknown storage driver: %s", provider)
 		return nil
 	}
 }
