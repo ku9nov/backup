@@ -17,7 +17,7 @@ jobs:
 
       - name: Build Binary
         run: |
-          go build -o backup main.go
+          CGO_ENABLED=0 go build -o backup main.go
         if: success()
 
       - name: Extract Version

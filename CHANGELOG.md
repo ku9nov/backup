@@ -1,3 +1,7 @@
+## 0.5.1
+### Bug Fixes
+- Disabled CGO for the binary file to function correctly after building with GitHub Actions.
+
 ## 0.5.0
 ### Features
 - :tada: **Implemented basic functionality.**

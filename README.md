@@ -2,6 +2,11 @@
 
 `Backup` is an application written in Golang designed to create backups intelligently and easily. This application supports multiple databases and multiple S3 storage providers. Additionally, it includes functionality to backup additional folders and files, ensuring proper configuration file preservation.
 
+## One command download 
+```
+BACKUP=$(curl --silent "https://api.github.com/repos/ku9nov/backup/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'); wget https://github.com/ku9nov/backup/releases/download/$BACKUP/backup -O /usr/bin/backup && chmod +x /usr/bin/backup
+```
+
 ## Building the App:
 You can build the app using the default Golang method
 
