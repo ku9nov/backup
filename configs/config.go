@@ -53,6 +53,7 @@ type Config struct {
 			Username string `yaml:"username"`
 			Password string `yaml:"password"`
 		} `yaml:"auth"`
+		DumpFlags string `yaml:"dumpFlags"`
 	} `yaml:"mysql"`
 	PostgreSQL struct {
 		Enabled   bool     `yaml:"enabled"`
@@ -65,6 +66,7 @@ type Config struct {
 			Username string `yaml:"username"`
 			Password string `yaml:"password"`
 		} `yaml:"auth"`
+		DumpFlags string `yaml:"dumpFlags"`
 	} `yaml:"postgresql"`
 	Additional struct {
 		Enabled bool     `yaml:"enabled"`

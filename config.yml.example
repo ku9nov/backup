@@ -59,6 +59,7 @@ mysql:
     enabled: true # Indicates whether authentication is enabled for MySQL
     username: example-username # Username for authenticating with MySQL
     password: example-password # Password for authenticating with MySQL
+  dumpFlags: "" # Extra flags for dump command
 
 # PostgreSQL config
 postgresql:
@@ -74,6 +75,7 @@ postgresql:
     enabled: true # Indicates whether authentication is enabled for PostgreSQL
     username: example-username # Username for authenticating with PostgreSQL
     password: example-password # Password for authenticating with PostgreSQL
+  dumpFlags: "" # Extra flags for dump command
 
 # Backup files
 additional:

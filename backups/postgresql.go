@@ -24,7 +24,9 @@ func CreatePostgreSQLBackup(cfgValues configs.Config, currentDate string, s3Cfg,
 			logrus.Info("PostgreSQL backup with authentication is required.")
 			cmdArgs = append(cmdArgs, "-U", cfgValues.PostgreSQL.Auth.Username)
 		}
-
+		if cfgValues.PostgreSQL.DumpFlags != "" {
+			cmdArgs = append(cmdArgs, strings.Split(cfgValues.PostgreSQL.DumpFlags, " ")...)
+		}
 		cmdArgs = append(cmdArgs, "-d", db)
 
 		filePath := fmt.Sprintf("%s/%s.sql", cfgValues.Default.BackupDir, db)

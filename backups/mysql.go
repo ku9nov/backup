@@ -19,6 +19,9 @@ func CreateMySQLBackup(cfgValues configs.Config, currentDate string, s3Cfg, extr
 	logrus.Info("MySQL is enabled, executing MySQL backup code...")
 	for _, db := range cfgValues.MySQL.Databases {
 		cmdArgs := []string{cfgValues.MySQL.DumpTool, "-h", cfgValues.MySQL.Host, "-P", cfgValues.MySQL.Port}
+		if cfgValues.MySQL.DumpFlags != "" {
+			cmdArgs = append(cmdArgs, strings.Split(cfgValues.MySQL.DumpFlags, " ")...)
+		}
 		if cfgValues.MySQL.Auth.Enabled {
 			logrus.Info("MySQL backup with authentication is required.")
 			cmdArgs = append(cmdArgs, "-u", cfgValues.MySQL.Auth.Username, fmt.Sprintf("-p%s", cfgValues.MySQL.Auth.Password))
