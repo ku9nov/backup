@@ -45,3 +45,11 @@ incoming-webhook
 ```
 After adding the scopes we are ready to install the application. Once you click Allow you will see long strings, one OAuth token, and one Webhook URL. Remember the location of these, or save them on another safe storage. Then we need to invite the Application into a channel that we want him to be available in.
 Go there and start typing a command message which is done by starting the message with `/`. We can invite the bot by typing `/invite @NameOfYourbot`.
+
+## Local development
+If you only want to run dependency services (minio), use this command:
+```
+docker-compose up
+```
+
+Then, open `http://localhost:9011/access-keys`, create Access Keys, and set `accessKey` and `secretKey` in either `config.yml`. To access the Minio dashboard, use the `MINIO_ROOT_USER` from the `docker-compose.yaml` as the username and `MINIO_ROOT_PASSWORD` as the password.
