@@ -29,3 +29,19 @@ You can review all possible variables in the [config.yml.example](config.yml.exa
 
 ## Systemd configuration
 For more detailed information on systemd configuration and usage, please refer to the [README.md](examples/systemd/README.md) file.
+
+## Enable Slack Notification
+### Create Slack Bot
+The first thing we need to do is to create the Slack application. Visit the [slack website](https://api.slack.com/apps?new_app=1) to create the application. Select the `From scratch` option. 
+You will be presented with the option to add a Name to the application and the Workspace to allow the application to be used. You should be able to see all workspaces that you are connected to. Select the appropriate workspace.
+Select the Bot option.
+After clicking Bots you will be redirected to a Help information page, select the option to add scopes. The first thing we need to add to the application is the actual permissions to perform anything.
+After pressing `Review Scopes to Add`, scroll down to Bot scopes and start adding the 4 scopes:
+```
+channels:history
+chat:write
+chat:write.customize
+incoming-webhook
+```
+After adding the scopes we are ready to install the application. Once you click Allow you will see long strings, one OAuth token, and one Webhook URL. Remember the location of these, or save them on another safe storage. Then we need to invite the Application into a channel that we want him to be available in.
+Go there and start typing a command message which is done by starting the message with `/`. We can invite the bot by typing `/invite @NameOfYourbot`.

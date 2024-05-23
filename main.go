@@ -10,6 +10,7 @@ import (
 	backup "github.com/ku9nov/backup/backups"
 	"github.com/ku9nov/backup/configs"
 	"github.com/ku9nov/backup/utils"
+	notify "github.com/ku9nov/backup/utils/notifications"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -76,36 +77,42 @@ func (configs mainConfig) Run() {
 	logrus.Infof("Default bucket: %s", configs.Default.Bucket)
 	logrus.Infof("Retention enabled: %t.", configs.Default.Retention.Enabled)
 	s3Cfg, extraS3Cfg := utils.SetStorageClient(*configs.Config)
-	allBackupsSuccessful := true
+	var failedBackups []string
 	// MongoDB configuration
 	if configs.Mongo.Enabled {
 		if !backup.CreateMongoBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
-			allBackupsSuccessful = false
+			failedBackups = append(failedBackups, "MongoDB")
 		}
 	}
 	// MySQL configuration
 	if configs.MySQL.Enabled {
 		if !backup.CreateMySQLBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
-			allBackupsSuccessful = false
+			failedBackups = append(failedBackups, "MySQL")
 		}
 	}
 	// PostgreSQL configuration
 	if configs.PostgreSQL.Enabled {
 		if !backup.CreatePostgreSQLBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
-			allBackupsSuccessful = false
+			failedBackups = append(failedBackups, "PostgreSQL")
 		}
 	}
 	// Additional configurations
 	if configs.Additional.Enabled {
 		if !backup.CreateAdditionalFilesBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
-			allBackupsSuccessful = false
+			failedBackups = append(failedBackups, "Additional Files")
 		}
 	}
-	if allBackupsSuccessful && configs.Default.Retention.Enabled {
+	if len(failedBackups) == 0 && configs.Default.Retention.Enabled {
 		utils.CheckOldFilesInS3(*configs.Config, s3Cfg, false)
 	}
-	if allBackupsSuccessful && configs.ExtraBackups.Enabled && configs.ExtraBackups.Retention.Enabled {
+	if len(failedBackups) == 0 && configs.ExtraBackups.Enabled && configs.ExtraBackups.Retention.Enabled {
 		utils.CheckOldFilesInS3(*configs.Config, extraS3Cfg, true)
+	}
+	if len(failedBackups) > 0 && configs.Slack.Enabled {
+		notify.SendMessageToSlack(*configs.Config, failedBackups)
+	}
+	if len(failedBackups) > 0 && configs.Zabbix.Enabled {
+		notify.ZabbixSender(*configs.Config)
 	}
 }
 

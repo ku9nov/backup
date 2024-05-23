@@ -2,6 +2,7 @@ package configs
 
 type Config struct {
 	Default struct {
+		Host            string `yaml:"host"`
 		StorageProvider string `yaml:"storageProvider"`
 		Bucket          string `yaml:"bucket"`
 		UseProfile      struct {
@@ -86,4 +87,16 @@ type Config struct {
 			RetentionPeriodDaily int  `yaml:"retentionPeriodDaily"`
 		} `yaml:"retention"`
 	} `yaml:"extraBackups"`
+	Slack struct {
+		Enabled        bool   `yaml:"enabled"`
+		SlackToken     string `yaml:"slackToken"`
+		SlackChannelID string `yaml:"slackChannelID"`
+	} `yaml:"slack"`
+	Zabbix struct {
+		Enabled     bool   `yaml:"enabled"`
+		ZabbixUrl   string `yaml:"zabbixUrl"`
+		ZabbixPort  int    `yaml:"zabbixPort"`
+		ZabbixKey   string `yaml:"zabbixKey"`
+		ZabbixValue string `yaml:"zabbixValue"`
+	} `yaml:"zabbix"`
 }

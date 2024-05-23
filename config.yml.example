@@ -2,6 +2,7 @@
 
 default:
   # Configuration for default settings applicable to all storage providers
+  host: localhost # Host name, used only for Slack notifications and zabbix.
   storageProvider: minio # The storage provider to be used; possible values are aws, minio, azure, spaces
   bucket: example-bucket-name # Name of the bucket where backups will be stored; in Azure Blob storage, it's referred to as container
   useProfile:  # Configuration related to AWS profile usage
@@ -97,3 +98,17 @@ extraBackups:
     enabled: true # Indicates whether file retention is enabled
     dryRun: true # If true, delete functions will be run without actually removing files; useful for testing
     retentionPeriodDaily: 7 # Number of days after which files will be deleted
+
+# Slack configuration
+slack:
+  enabled: false  # Set to false if you don't want to enable Slack integration
+  slackToken: <your slack token>  # Replace <your slack token> with your actual Slack token
+  slackChannelID: <your channelID>  # Replace <your channelID> with the ID of your Slack channel
+
+# Zabbix configuration
+zabbix:
+  enabled: false  # Set to true to enable Zabbix monitoring
+  zabbixUrl: example.com  # Replace example.com with your Zabbix server URL
+  zabbixPort: 10051  # Replace 10051 with the port number used by your Zabbix server
+  zabbixKey: backups[all] # Fill in this field with the key of the Zabbix item you want to monitor
+  zabbixValue: 1 # Fill in this field with the expected value of the monitored Zabbix item
