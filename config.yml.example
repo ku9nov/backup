@@ -77,6 +77,17 @@ postgresql:
     password: example-password # Password for authenticating with PostgreSQL
   dumpFlags: "" # Extra flags for dump command
 
+# Redis config
+redis:
+  # Configuration for Redis backups
+  enabled: false # Indicates whether Redis backups are enabled
+  host: 127.0.0.1 # Host address of the Redis server
+  port: 6379 # Port number of the Redis server
+  redisCliTool: redis-cli # Tool used for dumping Redis databases
+  auth:
+    enabled: true # Indicates whether authentication is enabled for Redis
+    password: example-password # Password for authenticating with Redis
+
 # Backup files
 additional:
   # Configuration for additional files and folders to be backed up

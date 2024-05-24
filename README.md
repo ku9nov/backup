@@ -26,8 +26,8 @@ go build -o backup main.go
 | MySQL :white_check_mark: | AWS S3   :white_check_mark: |
 | PostgreSQL :white_check_mark: | Minio :white_check_mark: |
 | MongoDB :white_check_mark: | Azure :white_check_mark: |
-| Redis :x: | Digital Ocean :white_check_mark: |
-| Elasticsearch :x: | GCP S3 :x: |
+| Redis :white_check_mark: | Digital Ocean :white_check_mark: |
+|  | GCP S3 :x: |
 
 ## Environment Overview:
 You can review all possible variables in the [config.yml.example](config.yml.example) file.

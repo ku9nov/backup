@@ -96,6 +96,12 @@ func (configs mainConfig) Run() {
 			failedBackups = append(failedBackups, "PostgreSQL")
 		}
 	}
+	// Redis configuration
+	if configs.Redis.Enabled {
+		if !backup.CreateRedisBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {
+			failedBackups = append(failedBackups, "Redis")
+		}
+	}
 	// Additional configurations
 	if configs.Additional.Enabled {
 		if !backup.CreateAdditionalFilesBackup(*configs.Config, currentDate, s3Cfg, extraS3Cfg) {

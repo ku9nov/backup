@@ -1,6 +1,7 @@
 ## 0.5.2
 ### Features
 - Added `dumpFlags` field for PostgreSQL and MySQL configuration.
+- Added `Redis` backups.
 
 ## 0.5.1
 ### Bug Fixes

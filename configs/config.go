@@ -68,6 +68,16 @@ type Config struct {
 		} `yaml:"auth"`
 		DumpFlags string `yaml:"dumpFlags"`
 	} `yaml:"postgresql"`
+	Redis struct {
+		Enabled      bool   `yaml:"enabled"`
+		Host         string `yaml:"host"`
+		Port         string `yaml:"port"`
+		RedisCliTool string `yaml:"redisCliTool"`
+		Auth         struct {
+			Enabled  bool   `yaml:"enabled"`
+			Password string `yaml:"password"`
+		} `yaml:"auth"`
+	} `yaml:"redis"`
 	Additional struct {
 		Enabled bool     `yaml:"enabled"`
 		Files   []string `yaml:"files"`
