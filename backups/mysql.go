@@ -24,11 +24,12 @@ func CreateMySQLBackup(cfgValues configs.Config, currentDate string, s3Cfg, extr
 		}
 		if cfgValues.MySQL.Auth.Enabled {
 			logrus.Info("MySQL backup with authentication is required.")
-			cmdArgs = append(cmdArgs, "-u", cfgValues.MySQL.Auth.Username, fmt.Sprintf("-p%s", cfgValues.MySQL.Auth.Password))
+			password := fmt.Sprintf("'%s'", cfgValues.MySQL.Auth.Password)
+			cmdArgs = append(cmdArgs, "-u", cfgValues.MySQL.Auth.Username, fmt.Sprintf("-p%s", password))
 		}
 
 		cmdArgs = append(cmdArgs, db)
-
+		cmdString := strings.Join(cmdArgs, " ")
 		filePath := fmt.Sprintf("%s/%s.sql", cfgValues.Default.BackupDir, db)
 		file, err := os.Create(filePath)
 		if err != nil {
@@ -38,7 +39,7 @@ func CreateMySQLBackup(cfgValues configs.Config, currentDate string, s3Cfg, extr
 		}
 		defer file.Close()
 
-		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+		cmd := exec.Command("bash", "-c", cmdString)
 		cmd.Stdout = file
 
 		err = cmd.Run()

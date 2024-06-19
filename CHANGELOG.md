@@ -1,3 +1,7 @@
+## 0.5.3
+### Bug Fixes
+- Fixed an issue where the mysqldump command failed due to special characters in the password.
+
 ## 0.5.2
 ### Features
 - Added `dumpFlags` field for PostgreSQL and MySQL configuration.
