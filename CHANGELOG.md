@@ -1,3 +1,7 @@
+## 0.5.4
+### Bug Fixes
+- Fixed an issue where files with the same name from different directories were overwriting each other in the archive. Files now preserve their full directory structure in the archive.
+
 ## 0.5.3
 ### Bug Fixes
 - Fixed an issue where the mysqldump command failed due to special characters in the password.

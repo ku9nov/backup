@@ -81,7 +81,12 @@ func AddToTar(tarWriter *tar.Writer, path string) error {
 		})
 	}
 
-	relPath := filepath.Base(path)
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		relPath := filepath.Base(path)
+		return addFileToTar(tarWriter, path, relPath, info)
+	}
+	relPath := strings.TrimPrefix(filepath.ToSlash(absPath), "/")
 	return addFileToTar(tarWriter, path, relPath, info)
 }
 
