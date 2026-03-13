@@ -12,7 +12,7 @@ func CreateAdditionalFilesBackup(cfgValues configs.Config, currentDate string, s
 	for _, file := range cfgValues.Additional.Files {
 		logrus.Info(file)
 	}
-	tarFilename := utils.TarFiles("etc", currentDate, cfgValues.Default.BackupDir, cfgValues.Additional.Files)
+	tarFilename := utils.TarFiles("etc", cfgValues.Default.Host, currentDate, cfgValues.Default.BackupDir, cfgValues.Additional.Files)
 	if len(tarFilename) == 0 {
 		logrus.Error("Error creating tar file.")
 		success = false

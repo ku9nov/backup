@@ -55,7 +55,7 @@ func CreateMySQLBackup(cfgValues configs.Config, currentDate string, s3Cfg, extr
 		success = true
 	}
 	if success {
-		tarFilename := utils.TarFiles("mysql", currentDate, cfgValues.Default.BackupDir, files)
+		tarFilename := utils.TarFiles("mysql", cfgValues.Default.Host, currentDate, cfgValues.Default.BackupDir, files)
 		if len(tarFilename) == 0 {
 			logrus.Error("Error creating tar file.")
 			success = false

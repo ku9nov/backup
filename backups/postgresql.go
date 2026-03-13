@@ -57,7 +57,7 @@ func CreatePostgreSQLBackup(cfgValues configs.Config, currentDate string, s3Cfg,
 	}
 
 	if success {
-		tarFilename := utils.TarFiles("postgres", currentDate, cfgValues.Default.BackupDir, files)
+		tarFilename := utils.TarFiles("postgres", cfgValues.Default.Host, currentDate, cfgValues.Default.BackupDir, files)
 		if len(tarFilename) == 0 {
 			logrus.Error("Error creating tar file.")
 			success = false

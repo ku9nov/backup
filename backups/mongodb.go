@@ -40,7 +40,7 @@ func CreateMongoBackup(cfgValues configs.Config, currentDate string, s3Cfg, extr
 		success = true
 	}
 	if success {
-		tarFilename := utils.TarFiles("mongo", currentDate, cfgValues.Default.BackupDir, files)
+		tarFilename := utils.TarFiles("mongo", cfgValues.Default.Host, currentDate, cfgValues.Default.BackupDir, files)
 		if len(tarFilename) == 0 {
 			logrus.Error("Error creating tar file.")
 			success = false

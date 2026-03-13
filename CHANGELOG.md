@@ -1,3 +1,7 @@
+## 0.5.6
+### Features
+- Added `host` field to the configuration to include the host name in the backup file name.
+
 ## 0.5.5
 ### Maintenance
 - Updated go modules.

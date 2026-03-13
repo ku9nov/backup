@@ -32,8 +32,8 @@ func CheckToolIsExist(tool string) bool {
 	return true
 }
 
-func TarFiles(backupSource, currentDate, backupDir string, files []string) []string {
-	tarGzFilename := filepath.Join(backupDir, backupSource+"-"+currentDate+".tgz")
+func TarFiles(backupSource, host, currentDate, backupDir string, files []string) []string {
+	tarGzFilename := filepath.Join(backupDir, backupSource+"-"+host+"-"+currentDate+".tgz")
 
 	tarGzFile, err := os.Create(tarGzFilename)
 	if err != nil {

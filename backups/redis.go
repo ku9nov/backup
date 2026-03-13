@@ -50,7 +50,7 @@ func CreateRedisBackup(cfgValues configs.Config, currentDate string, s3Cfg, extr
 	logrus.Info("Backup for Redis created successfully.\n")
 	files = append(files, filePath)
 	if success {
-		tarFilename := utils.TarFiles("redis", currentDate, cfgValues.Default.BackupDir, []string{filePath})
+		tarFilename := utils.TarFiles("redis", cfgValues.Default.Host, currentDate, cfgValues.Default.BackupDir, []string{filePath})
 		if len(tarFilename) == 0 {
 			logrus.Error("Error creating tar file.")
 			success = false
