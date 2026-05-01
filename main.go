@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	backup "github.com/ku9nov/backup/backups"
 	"github.com/ku9nov/backup/configs"
+	"github.com/ku9nov/backup/upgrade"
 	"github.com/ku9nov/backup/utils"
 	notify "github.com/ku9nov/backup/utils/notifications"
 	"github.com/sirupsen/logrus"
@@ -18,6 +20,11 @@ import (
 var logLevel string
 
 var configPath string
+var showVersion bool
+var version = "dev"
+var commit = "none"
+var date = "unknown"
+var channel = "stable"
 
 type mainConfig struct {
 	*configs.Config
@@ -26,6 +33,7 @@ type mainConfig struct {
 func init() {
 	flag.StringVar(&logLevel, "loglevel", "info", "log level (debug, info, warn, error, fatal, panic)")
 	flag.StringVar(&configPath, "config", "./config.yml", "path to config file")
+	flag.BoolVar(&showVersion, "version", false, "show build version information")
 	flag.Parse()
 
 	logrus.New()
@@ -123,16 +131,40 @@ func (configs mainConfig) Run() {
 }
 
 func main() {
-	logrus.Info("Starting backups...")
+	if showVersion {
+		fmt.Printf("backup version=%s commit=%s date=%s channel=%s\n", version, commit, date, channel)
+		return
+	}
 
 	if err := ValidateConfigPath(configPath); err != nil {
 		log.Fatal(err)
 	}
+
 	cfg, err := NewConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cfg.Run()
-	logrus.Info("Backups finished.")
+	action := strings.ToLower(strings.TrimSpace(flag.Arg(0)))
+	switch action {
+	case "", "run":
+		logrus.Info("Starting backups...")
+		cfg.Run()
+		logrus.Info("Backups finished.")
+	case "upgrade":
+		logrus.Info("Starting upgrade...")
+		if err := upgrade.Run(upgrade.Input{
+			Logger:  logrus.StandardLogger(),
+			Config:  cfg.Config,
+			Version: strings.TrimSpace(version),
+			Channel: strings.TrimSpace(channel),
+			In:      os.Stdin,
+			Out:     os.Stdout,
+		}); err != nil {
+			log.Fatal(err)
+		}
+		logrus.Info("Upgrade finished.")
+	default:
+		log.Fatalf("unknown action %q. Supported actions: run, upgrade", action)
+	}
 }

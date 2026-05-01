@@ -3,7 +3,6 @@ package utils
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -153,7 +152,7 @@ func processFileData(key string, lastModified time.Time, cfgValues configs.Confi
 	age := currentTime.Sub(lastModified)
 	isFolder := strings.HasSuffix(key, "/")
 	if isExtraClient {
-		if strings.HasPrefix(key, fmt.Sprintf(cfgValues.Default.Bucket+"/")) && !isFolder && age > time.Duration(cfgValues.ExtraBackups.Retention.RetentionPeriodDaily)*24*time.Hour {
+		if strings.HasPrefix(key, cfgValues.Default.Bucket+"/") && !isFolder && age > time.Duration(cfgValues.ExtraBackups.Retention.RetentionPeriodDaily)*24*time.Hour {
 			return OldObject{Key: key, LastModified: lastModified, Age: age}
 		}
 	} else {

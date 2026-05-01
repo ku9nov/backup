@@ -20,6 +20,34 @@ go build -o backup main.go
 
 `-config` sets the path to the config file with a default value of ./config.yml
 
+## Upgrade command
+Use the action command below to check and install a new CLI version:
+
+```
+backup upgrade
+```
+
+Upgrade settings are configured under the `upgrade` section in `config.yml`.
+
+## Version command
+Show current build information:
+
+```
+backup --version
+```
+
+Set build metadata during compilation:
+
+```
+go build \
+  -ldflags "-s -w \
+  -X main.version=${VERSION} \
+  -X main.commit=${GIT_COMMIT} \
+  -X main.date=${BUILD_DATE} \
+  -X main.channel=${CHANNEL}" \
+  -o backup main.go
+```
+
 ## Compatibilities:
 | Databases    | S3 Providers |
 | -------- | ------- |

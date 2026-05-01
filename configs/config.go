@@ -1,5 +1,19 @@
 package configs
 
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+const (
+	defaultDeviceIDFile = "device_id"
+	defaultStateDirName = ".backup"
+)
+
 type Config struct {
 	Default struct {
 		Host            string `yaml:"host"`
@@ -111,4 +125,64 @@ type Config struct {
 		ZabbixKey   string `yaml:"zabbixKey"`
 		ZabbixValue string `yaml:"zabbixValue"`
 	} `yaml:"zabbix"`
+	Upgrade struct {
+		Server string `yaml:"server"`
+		Owner  string `yaml:"owner"`
+		TUF    bool   `yaml:"tuf"`
+		App    string `yaml:"app"`
+	} `yaml:"upgrade"`
+}
+
+func StateDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	homeDir = strings.TrimSpace(homeDir)
+	if homeDir == "" {
+		return "", errors.New("home directory is empty")
+	}
+	return filepath.Join(homeDir, defaultStateDirName), nil
+}
+
+func EnsureDeviceID() (string, error) {
+	stateDir, err := StateDir()
+	if err != nil {
+		return "", err
+	}
+
+	devicePath := filepath.Join(stateDir, defaultDeviceIDFile)
+	raw, err := os.ReadFile(devicePath)
+	if err == nil {
+		deviceID := strings.TrimSpace(string(raw))
+		if deviceID != "" {
+			return deviceID, nil
+		}
+	}
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+
+	if err := os.MkdirAll(stateDir, 0o755); err != nil {
+		return "", err
+	}
+
+	deviceID, err := generateDeviceID()
+	if err != nil {
+		return "", err
+	}
+
+	if err := os.WriteFile(devicePath, []byte(deviceID+"\n"), 0o600); err != nil {
+		return "", err
+	}
+
+	return deviceID, nil
+}
+
+func generateDeviceID() (string, error) {
+	buf := make([]byte, 16)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf), nil
 }

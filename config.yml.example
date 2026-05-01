@@ -125,3 +125,9 @@ zabbix:
   zabbixPort: 10051  # Replace 10051 with the port number used by your Zabbix server
   zabbixKey: backups[all] # Fill in this field with the key of the Zabbix item you want to monitor
   zabbixValue: 1 # Fill in this field with the expected value of the monitored Zabbix item
+
+# Upgrade configuration
+upgrade:
+  server: https://updates.example.com # Base URL for checkVersion endpoint and artifact downloads
+  owner: admin # Tenant/account owner sent as query parameter
+  tuf: true # Enable TUF-based artifact download and verification

@@ -137,7 +137,7 @@ func UploadToS3(cfgValues configs.Config, tarFilename []string, s3Client, extraS
 	for _, filename := range tarFilename {
 		s3Client.UploadFileToS3(filename, cfgValues, dailyPrefix, false)
 		if cfgValues.ExtraBackups.Enabled {
-			extraS3Client.UploadFileToS3(filename, cfgValues, fmt.Sprintf(cfgValues.Default.Bucket+"/"), true)
+			extraS3Client.UploadFileToS3(filename, cfgValues, cfgValues.Default.Bucket+"/", true)
 		}
 	}
 }
