@@ -1,3 +1,7 @@
+## 0.5.8
+### Features
+- Added self-upgrade functionality.
+
 ## 0.5.7
 ### Maintenance
 - Updated go version to latest stable version.
