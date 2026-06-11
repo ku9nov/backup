@@ -3,6 +3,7 @@
 ### Features
 - Added faynosync-sdk-go.
 
+## 0.5.8
 
 ### Features
 - Added self-upgrade functionality.
