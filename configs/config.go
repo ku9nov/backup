@@ -127,6 +127,7 @@ type Config struct {
 	} `yaml:"zabbix"`
 	Upgrade struct {
 		Server string `yaml:"server"`
+		Edge   string `yaml:"edge"`
 		Owner  string `yaml:"owner"`
 		TUF    bool   `yaml:"tuf"`
 		App    string `yaml:"app"`

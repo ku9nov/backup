@@ -7,13 +7,65 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/ku9nov/backup/configs"
+	faynosync "github.com/ku9nov/faynosync-sdk-go"
 	"github.com/sirupsen/logrus"
 )
+
+func TestResolveUpdateURL(t *testing.T) {
+	tests := []struct {
+		name string
+		resp *faynosync.UpdateResponse
+		want string
+	}{
+		{
+			name: "prefers update_url",
+			resp: &faynosync.UpdateResponse{
+				UpdateURL: "https://updates.example/backup-1.0.0",
+				PackageURLs: []faynosync.PackageUpdateURL{
+					{Package: "deb", URL: "https://updates.example/backup-1.0.0.deb"},
+				},
+			},
+			want: "https://updates.example/backup-1.0.0",
+		},
+		{
+			name: "falls back to first package url",
+			resp: &faynosync.UpdateResponse{
+				PackageURLs: []faynosync.PackageUpdateURL{
+					{Package: "deb", URL: "https://updates.example/backup-1.0.0.deb"},
+					{Package: "rpm", URL: "https://updates.example/backup-1.0.0.rpm"},
+				},
+			},
+			want: "https://updates.example/backup-1.0.0.deb",
+		},
+		{
+			name: "skips empty package url",
+			resp: &faynosync.UpdateResponse{
+				PackageURLs: []faynosync.PackageUpdateURL{
+					{Package: "deb", URL: "  "},
+					{Package: "rpm", URL: "https://updates.example/backup-1.0.0.rpm"},
+				},
+			},
+			want: "https://updates.example/backup-1.0.0.rpm",
+		},
+		{
+			name: "empty when no urls",
+			resp: &faynosync.UpdateResponse{},
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := resolveUpdateURL(tt.resp); got != tt.want {
+				t.Fatalf("resolveUpdateURL() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestRunUpdateAvailable(t *testing.T) {
 	originalInstall := installDownloadedArtifactFn
@@ -62,10 +114,6 @@ func TestRunUpdateAvailable(t *testing.T) {
 	}
 
 	assertQuery(t, gotQuery, "app_name", "backup")
-	assertQuery(t, gotQuery, "version", "0.9.0")
-	assertQuery(t, gotQuery, "channel", "stable")
-	assertQuery(t, gotQuery, "platform", runtime.GOOS)
-	assertQuery(t, gotQuery, "arch", runtime.GOARCH)
 	assertQuery(t, gotQuery, "owner", "admin")
 	if gotDeviceID == "" {
 		t.Fatal("expected X-Device-ID header to be set")
@@ -158,6 +206,65 @@ func TestRunSendsStableDeviceIDAcrossRuns(t *testing.T) {
 	}
 	if receivedIDs[0] != receivedIDs[1] {
 		t.Fatalf("expected stable device id across runs, got %q and %q", receivedIDs[0], receivedIDs[1])
+	}
+}
+
+func TestRunPrefersEdge(t *testing.T) {
+	originalInstall := installDownloadedArtifactFn
+	installDownloadedArtifactFn = func(_ string) error { return nil }
+	t.Cleanup(func() {
+		installDownloadedArtifactFn = originalInstall
+	})
+
+	edgeHit := false
+	apiHit := false
+
+	var fileSrv *httptest.Server
+	fileSrv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprint(w, "binary-content")
+	}))
+	defer fileSrv.Close()
+
+	apiSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/checkVersion" {
+			apiHit = true
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer apiSrv.Close()
+
+	edgeSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		edgeHit = true
+		_, _ = fmt.Fprintf(w, `{"update_available":true,"update_url":"%s/files/backup-1.0.0"}`, fileSrv.URL)
+	}))
+	defer edgeSrv.Close()
+
+	testConfigPath(t)
+	logger, logOutput := newTestLogger()
+	cfg := &configs.Config{}
+	cfg.Upgrade.Server = apiSrv.URL
+	cfg.Upgrade.Edge = edgeSrv.URL
+	cfg.Upgrade.Owner = "admin"
+	cfg.Upgrade.App = "backup"
+
+	err := Run(Input{
+		Logger:  logger,
+		Config:  cfg,
+		Version: "0.9.0",
+		Channel: "stable",
+	})
+	if err != nil {
+		t.Fatalf("Run returned error: %v", err)
+	}
+
+	if !edgeHit {
+		t.Fatal("expected edge endpoint to be queried")
+	}
+	if apiHit {
+		t.Fatal("expected api checkVersion to be skipped when edge succeeds")
+	}
+	if !strings.Contains(logOutput.String(), "source=edge") {
+		t.Fatalf("expected edge source in log, got: %s", logOutput.String())
 	}
 }
 

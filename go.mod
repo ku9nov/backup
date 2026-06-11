@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
+	github.com/ku9nov/faynosync-sdk-go v0.1.0
 	github.com/theupdateframework/go-tuf/v2 v2.4.1
 	gopkg.in/yaml.v2 v2.4.0
 )

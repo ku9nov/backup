@@ -129,5 +129,6 @@ zabbix:
 # Upgrade configuration
 upgrade:
   server: https://updates.example.com # Base URL for checkVersion endpoint and artifact downloads
+  edge: https://edge.example.com # Optional static-response edge URL; tried before server, falls back to server on miss
   owner: admin # Tenant/account owner sent as query parameter
   tuf: true # Enable TUF-based artifact download and verification
