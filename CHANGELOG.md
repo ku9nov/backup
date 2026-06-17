@@ -1,3 +1,8 @@
+## 0.6.0
+
+### Maintenance
+- Updated `golang.org/x/crypto` to 0.52.0 to fix CVE-2026-46595.
+
 ## 0.5.9
 
 ### Features
