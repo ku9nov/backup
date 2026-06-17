@@ -1,6 +1,6 @@
 module github.com/ku9nov/backup
 
-go 1.26.1
+go 1.26.3
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
@@ -28,7 +28,7 @@ require (
 	github.com/sigstore/protobuf-specs v0.5.0 // indirect
 	github.com/sigstore/sigstore v1.10.5 // indirect
 	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5 // indirect

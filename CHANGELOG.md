@@ -1,3 +1,9 @@
+## 0.6.1
+
+### Maintenance
+- Updated `golang.org/x/net` to 0.55.0.
+- Updated Go to 1.26.3.
+
 ## 0.6.0
 
 ### Maintenance
